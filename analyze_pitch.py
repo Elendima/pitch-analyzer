@@ -142,7 +142,7 @@ Non aggiungere testo fuori dal JSON. Tutto in italiano.
 }}"""
 
 # ---------------------------------------------------------------------------
-# HTML template
+# HTML template  (Lovable-inspired design + confronto societá)
 # ---------------------------------------------------------------------------
 
 HTML_TEMPLATE = """<!DOCTYPE html>
@@ -152,258 +152,504 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{nome_azienda} — Analisi Pitch</title>
 <style>
-  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  /* ── Reset & base ── */
+  *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  :root {{
+    --bg:       #fcfbf8;
+    --surface:  #ffffff;
+    --border:   #e8e3da;
+    --text:     #1c1917;
+    --text-2:   #57534e;
+    --text-3:   #a8a29e;
+    --accent:   #18181b;
+    --red:      #dc2626;
+    --red-bg:   #fef2f2;
+    --red-br:   #fecaca;
+    --orange:   #c2410c;
+    --orange-bg:#fff7ed;
+    --orange-br:#fed7aa;
+    --green:    #15803d;
+    --green-bg: #f0fdf4;
+    --blue:     #1d4ed8;
+    --blue-bg:  #eff6ff;
+    --r:        14px;
+    --r-sm:     8px;
+    --shadow:   0 1px 4px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04);
+  }}
   body {{
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 14px;
-    line-height: 1.6;
-    color: #1a1a2e;
-    background: #f5f5f7;
-    padding: 32px 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+    font-size: 14px; line-height: 1.65; color: var(--text);
+    background: var(--bg); padding: 32px 16px 80px;
   }}
-  .container {{ max-width: 920px; margin: 0 auto; }}
-  .header {{
-    background: #1a1a2e;
-    color: white;
-    border-radius: 12px;
-    padding: 32px;
-    margin-bottom: 24px;
+  .wrap {{ max-width: 940px; margin: 0 auto; }}
+
+  /* ── Header ── */
+  .hd {{
+    padding: 40px 0 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
   }}
-  .header h1 {{ font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }}
-  .header .tagline {{ color: #a0aec0; font-size: 15px; font-style: italic; margin-bottom: 12px; }}
-  .header .meta {{ font-size: 12px; color: #718096; }}
+  .hd-eyebrow {{
+    font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text-3); margin-bottom: 10px;
+  }}
+  .hd h1 {{
+    font-size: 36px; font-weight: 700; letter-spacing: -.8px;
+    color: var(--text); line-height: 1.15; margin-bottom: 8px;
+  }}
+  .hd-tagline {{
+    font-size: 16px; color: var(--text-2); margin-bottom: 16px; font-style: italic;
+  }}
+  .hd-meta {{ display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }}
+  .pill {{
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 99px; padding: 3px 12px;
+    font-size: 12px; font-weight: 500; color: var(--text-2);
+  }}
+  .pill.teal {{ background:#f0fdfa; border-color:#99f6e4; color:#0f766e; }}
+
+  /* ── Synthesis ── */
   .synthesis {{
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 16px;
+    background: var(--accent); color: #fff;
+    border-radius: var(--r); padding: 28px 30px; margin-bottom: 20px;
   }}
-  .synthesis h2 {{
-    font-size: 11px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 1px; color: rgba(255,255,255,0.6); margin-bottom: 10px;
+  .synthesis .s-label {{
+    font-size: 10px; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: rgba(255,255,255,.45); margin-bottom: 10px;
   }}
-  .synthesis p {{ font-size: 15px; line-height: 1.75; color: rgba(255,255,255,0.95); }}
-  .section {{
-    background: white; border-radius: 12px; padding: 24px;
-    margin-bottom: 16px; border: 1px solid #e2e8f0;
+  .synthesis p {{ font-size: 15px; line-height: 1.8; color: rgba(255,255,255,.9); }}
+
+  /* ── Cards ── */
+  .card {{
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r); padding: 26px 28px; margin-bottom: 16px;
+    box-shadow: var(--shadow);
   }}
-  .section h2 {{
-    font-size: 11px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 1px; color: #718096; margin-bottom: 16px;
-    padding-bottom: 10px; border-bottom: 1px solid #e2e8f0;
+  .card-title {{
+    font-size: 10px; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--text-3);
+    padding-bottom: 14px; border-bottom: 1px solid var(--border); margin-bottom: 20px;
   }}
-  .grid-2 {{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }}
-  @media (max-width: 640px) {{ .grid-2 {{ grid-template-columns: 1fr; }} }}
-  .field {{ margin-bottom: 18px; }}
+  .grid2 {{ display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }}
+  @media (max-width:640px) {{ .grid2 {{ grid-template-columns: 1fr; }} }}
+
+  /* ── Fields ── */
+  .field {{ margin-bottom: 20px; }}
   .field:last-child {{ margin-bottom: 0; }}
-  .field-label {{
-    font-size: 10px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.6px; color: #a0aec0; margin-bottom: 5px;
+  .label {{
+    font-size: 10px; font-weight: 700; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--text-3); margin-bottom: 6px;
   }}
-  .field-value {{ font-size: 14px; color: #2d3748; line-height: 1.65; }}
-  .badge {{
-    display: inline-block; background: #edf2ff; color: #3b82f6;
-    border-radius: 6px; padding: 2px 10px; font-size: 12px; font-weight: 600; margin: 2px;
+  .value {{ font-size: 14px; color: var(--text-2); line-height: 1.7; }}
+
+  /* ── Tags ── */
+  .tag {{
+    display: inline-block; border-radius: 6px;
+    padding: 2px 10px; font-size: 12px; font-weight: 600; margin: 2px;
   }}
-  .badge.green {{ background: #f0fff4; color: #38a169; }}
-  .badge.orange {{ background: #fffaf0; color: #dd6b20; }}
-  .badge.red {{ background: #fff5f5; color: #e53e3e; }}
+  .tag-blue  {{ background: var(--blue-bg);   color: var(--blue);   }}
+  .tag-green {{ background: var(--green-bg);  color: var(--green);  }}
+  .tag-orange{{ background: var(--orange-bg); color: var(--orange); }}
+  .tag-gray  {{ background: #f4f4f5; color: #52525b; }}
+
+  /* ── Team ── */
   .team-card {{
-    background: #f7fafc; border-radius: 8px; padding: 14px; margin-bottom: 10px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--r-sm); padding: 16px; margin-bottom: 10px;
   }}
   .team-card:last-child {{ margin-bottom: 0; }}
-  .team-card .t-name {{ font-weight: 700; font-size: 14px; }}
-  .team-card .t-role {{ font-size: 12px; color: #718096; margin-bottom: 5px; }}
-  .team-card .t-bg {{ font-size: 13px; color: #4a5568; line-height: 1.5; }}
-  .competitor-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }}
-  @media (max-width: 640px) {{ .competitor-grid {{ grid-template-columns: 1fr; }} }}
-  .competitor-card {{
-    background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;
+  .t-name {{ font-weight: 700; font-size: 14px; margin-bottom: 2px; }}
+  .t-role  {{ font-size: 12px; color: var(--text-3); margin-bottom: 8px; }}
+  .t-bg    {{ font-size: 13px; color: var(--text-2); line-height: 1.6; }}
+
+  /* ── Competitors ── */
+  .comp-grid {{
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;
   }}
-  .competitor-card .c-label {{
-    font-size: 10px; color: #a0aec0; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+  @media (max-width:640px) {{ .comp-grid {{ grid-template-columns: 1fr; }} }}
+  .comp-card {{
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--r-sm); padding: 14px;
   }}
-  .competitor-card .c-name {{ font-weight: 700; font-size: 14px; margin-bottom: 5px; }}
-  .competitor-card .c-desc {{ font-size: 13px; color: #4a5568; line-height: 1.5; }}
-  .question-list {{ list-style: none; counter-reset: q; }}
-  .question-list li {{
-    counter-increment: q; display: flex; gap: 12px;
-    padding: 12px 0; border-bottom: 1px solid #f0f0f0;
-  }}
-  .question-list li:last-child {{ border-bottom: none; }}
-  .question-list li::before {{
-    content: counter(q);
-    background: #1a1a2e; color: white; font-size: 11px; font-weight: 700;
-    min-width: 22px; height: 22px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
-  }}
-  .flag-card {{
-    background: #fffbf0; border: 1px solid #fbd38d;
-    border-radius: 8px; padding: 14px; margin-bottom: 10px;
-  }}
-  .flag-card.alta {{ background: #fff5f5; border-color: #feb2b2; }}
-  .flag-card:last-child {{ margin-bottom: 0; }}
-  .flag-header {{ display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }}
-  .flag-area {{
+  .c-badge {{
     font-size: 10px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.5px; color: #dd6b20;
+    letter-spacing: .06em; color: var(--text-3); margin-bottom: 5px;
   }}
-  .flag-card.alta .flag-area {{ color: #e53e3e; }}
-  .flag-gravita {{
-    font-size: 10px; font-weight: 700; padding: 1px 8px;
-    border-radius: 4px; background: #fbd38d; color: #744210;
+  .c-name {{ font-weight: 700; font-size: 14px; margin-bottom: 6px; }}
+  .c-desc  {{ font-size: 13px; color: var(--text-2); line-height: 1.55; }}
+
+  /* ── Questions ── */
+  .q-list {{ list-style: none; counter-reset: q; }}
+  .q-list li {{
+    counter-increment: q; display: flex; gap: 14px;
+    padding: 13px 0; border-bottom: 1px solid var(--border); align-items: flex-start;
   }}
-  .flag-card.alta .flag-gravita {{ background: #feb2b2; color: #742a2a; }}
-  .flag-desc {{ font-size: 13px; color: #4a5568; line-height: 1.55; }}
-  .features-list {{ display: flex; flex-wrap: wrap; gap: 6px; }}
+  .q-list li:last-child {{ border-bottom: none; }}
+  .q-list li::before {{
+    content: counter(q);
+    background: var(--accent); color: #fff;
+    font-size: 11px; font-weight: 700; min-width: 22px; height: 22px;
+    border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0; margin-top: 1px;
+  }}
+
+  /* ── Flags ── */
+  .flag {{
+    border-radius: var(--r-sm); padding: 14px 16px; margin-bottom: 10px;
+    background: var(--orange-bg); border: 1px solid var(--orange-br);
+  }}
+  .flag.alta {{ background: var(--red-bg); border-color: var(--red-br); }}
+  .flag:last-child {{ margin-bottom: 0; }}
+  .flag-hd {{ display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }}
+  .f-area {{
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--orange);
+  }}
+  .flag.alta .f-area {{ color: var(--red); }}
+  .f-sev {{
+    font-size: 10px; font-weight: 700; padding: 2px 8px;
+    border-radius: 4px; background: var(--orange-br); color: var(--orange);
+  }}
+  .flag.alta .f-sev {{ background: var(--red-br); color: var(--red); }}
+  .f-desc {{ font-size: 13px; color: var(--text-2); line-height: 1.6; }}
+
+  /* ── Footer ── */
   .footer {{
-    text-align: center; color: #a0aec0; font-size: 12px; margin-top: 24px; padding: 16px;
+    text-align: center; color: var(--text-3); font-size: 12px; margin-top: 32px;
   }}
-  .web-badge {{
-    display: inline-flex; align-items: center; gap: 4px;
-    background: #e6fffa; color: #2c7a7b; border-radius: 6px;
-    padding: 2px 8px; font-size: 11px; font-weight: 600; margin-left: 8px;
+
+  /* ── Confronto widget ── */
+  #compare-fab {{
+    position: fixed; bottom: 28px; right: 28px; z-index: 100;
+    background: var(--accent); color: #fff; border: none; cursor: pointer;
+    border-radius: 99px; padding: 12px 20px; font-size: 14px; font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0,0,0,.2); display: flex; align-items: center; gap: 8px;
+    transition: transform .15s, box-shadow .15s;
   }}
+  #compare-fab:hover {{ transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.25); }}
+  #compare-panel {{
+    position: fixed; bottom: 88px; right: 28px; z-index: 99;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r); box-shadow: 0 8px 32px rgba(0,0,0,.12);
+    padding: 20px; width: 320px; display: none;
+  }}
+  #compare-panel.open {{ display: block; }}
+  #compare-panel h3 {{ font-size: 13px; font-weight: 700; margin-bottom: 12px; }}
+  #compare-input {{
+    width: 100%; border: 1px solid var(--border); border-radius: var(--r-sm);
+    padding: 10px 12px; font-size: 14px; background: var(--bg); outline: none;
+    color: var(--text);
+  }}
+  #compare-input:focus {{ border-color: var(--accent); }}
+  #compare-go {{
+    width: 100%; margin-top: 10px; background: var(--accent); color: #fff;
+    border: none; border-radius: var(--r-sm); padding: 10px; font-size: 14px;
+    font-weight: 600; cursor: pointer;
+  }}
+  #compare-go:disabled {{ opacity: .5; cursor: not-allowed; }}
+  #compare-status {{ font-size: 12px; color: var(--text-3); margin-top: 8px; text-align: center; }}
+
+  /* ── Confronto risultati ── */
+  #compare-result {{
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r); padding: 28px; margin-bottom: 16px; display: none;
+    box-shadow: var(--shadow);
+  }}
+  #compare-result.visible {{ display: block; }}
+  .cr-header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }}
+  .cr-header h2 {{ font-size: 16px; font-weight: 700; }}
+  .cr-close {{ background: none; border: 1px solid var(--border); border-radius: 6px;
+               padding: 4px 12px; cursor: pointer; font-size: 12px; color: var(--text-2); }}
+  .cr-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }}
+  .cr-co {{ background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 14px; }}
+  .cr-co-name {{ font-weight: 700; font-size: 15px; margin-bottom: 4px; }}
+  .cr-co-desc {{ font-size: 13px; color: var(--text-2); line-height: 1.55; }}
+  .cr-rows {{ display: flex; flex-direction: column; gap: 0; }}
+  .cr-row {{ display: grid; grid-template-columns: 120px 1fr 1fr 80px; gap: 12px;
+             padding: 14px 0; border-bottom: 1px solid var(--border); align-items: start; }}
+  .cr-row:last-child {{ border-bottom: none; }}
+  .cr-dim {{ font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+             color: var(--text-3); padding-top: 2px; }}
+  .cr-cell {{ font-size: 13px; color: var(--text-2); line-height: 1.55; }}
+  .cr-winner {{
+    font-size: 11px; font-weight: 700; text-align: center; padding: 3px 8px;
+    border-radius: 6px; background: var(--green-bg); color: var(--green);
+  }}
+  .cr-winner.b {{ background: var(--blue-bg); color: var(--blue); }}
+  .cr-winner.pari {{ background: #f4f4f5; color: #52525b; }}
+  .cr-sintesi {{
+    margin-top: 16px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--r-sm); padding: 16px;
+    font-size: 14px; color: var(--text-2); line-height: 1.7;
+  }}
+  .cr-sintesi strong {{ color: var(--text); }}
 </style>
 </head>
 <body>
-<div class="container">
+<div class="wrap">
 
-  <div class="header">
+  <!-- Header -->
+  <div class="hd">
+    <div class="hd-eyebrow">Analisi Pitch Deck</div>
     <h1>{nome_azienda}</h1>
     {tagline_html}
-    <div class="meta">Analisi generata il {data} · GPT-4o{web_badge}</div>
+    <div class="hd-meta">
+      <span class="pill">{data}</span>
+      <span class="pill">GPT-4o</span>
+      {web_badge}
+    </div>
   </div>
 
+  <!-- Sintesi -->
   <div class="synthesis">
-    <h2>Sintesi del Partner</h2>
+    <div class="s-label">Sintesi del Partner</div>
     <p>{sintesi}</p>
   </div>
 
-  <div class="section">
-    <h2>Business</h2>
+  <!-- Confronto risultati (appare qui quando richiesto) -->
+  <div id="compare-result">
+    <div class="cr-header">
+      <h2 id="cr-title">Confronto</h2>
+      <button class="cr-close" onclick="closeCompare()">Chiudi ✕</button>
+    </div>
+    <div class="cr-grid" id="cr-companies"></div>
+    <div class="cr-rows" id="cr-rows"></div>
+    <div class="cr-sintesi" id="cr-sintesi"></div>
+  </div>
+
+  <!-- Business -->
+  <div class="card">
+    <div class="card-title">Business</div>
     <div class="field">
-      <div class="field-label">Problema</div>
-      <div class="field-value">{problema}</div>
+      <div class="label">Problema</div>
+      <div class="value">{problema}</div>
     </div>
     <div class="field">
-      <div class="field-label">Soluzione</div>
-      <div class="field-value">{soluzione}</div>
+      <div class="label">Soluzione</div>
+      <div class="value">{soluzione}</div>
     </div>
     <div class="field">
-      <div class="field-label">Modello di business</div>
-      <div class="field-value">{modello_di_business}</div>
+      <div class="label">Modello di business</div>
+      <div class="value">{modello_di_business}</div>
     </div>
   </div>
 
-  <div class="section">
-    <h2>Prodotto e Tecnologia</h2>
+  <!-- Prodotto -->
+  <div class="card">
+    <div class="card-title">Prodotto e Tecnologia</div>
     <div class="field">
-      <div class="field-label">Descrizione</div>
-      <div class="field-value">{descrizione_prodotto}</div>
+      <div class="label">Descrizione</div>
+      <div class="value">{descrizione_prodotto}</div>
     </div>
     <div class="field">
-      <div class="field-label">Caratteristiche chiave</div>
-      <div class="features-list">{features_html}</div>
+      <div class="label">Caratteristiche chiave</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">{features_html}</div>
     </div>
-    <div class="grid-2">
+    <div class="grid2">
       <div class="field">
-        <div class="field-label">Stack tecnologico</div>
-        <div class="field-value">{stack_tecnologico}</div>
+        <div class="label">Stack tecnologico</div>
+        <div class="value">{stack_tecnologico}</div>
       </div>
       <div class="field">
-        <div class="field-label">Stadio di sviluppo</div>
-        <div class="field-value"><span class="badge orange">{stadio}</span></div>
+        <div class="label">Stadio di sviluppo</div>
+        <div class="value"><span class="tag tag-orange">{stadio}</span></div>
       </div>
     </div>
     <div class="field">
-      <div class="field-label">Differenziatore tecnologico</div>
-      <div class="field-value">{differenziatore_tecnologico}</div>
+      <div class="label">Differenziatore tecnologico</div>
+      <div class="value">{differenziatore_tecnologico}</div>
     </div>
   </div>
 
-  <div class="section">
-    <h2>Team</h2>
+  <!-- Team -->
+  <div class="card">
+    <div class="card-title">Team</div>
     {team_html}
     <div class="field" style="margin-top:16px">
-      <div class="field-label">Valutazione critica</div>
-      <div class="field-value">{valutazione_team}</div>
+      <div class="label">Valutazione critica</div>
+      <div class="value">{valutazione_team}</div>
     </div>
   </div>
 
-  <div class="section">
-    <h2>Mercato</h2>
-    <div class="grid-2">
+  <!-- Mercato -->
+  <div class="card">
+    <div class="card-title">Mercato</div>
+    <div class="grid2">
       <div>
         <div class="field">
-          <div class="field-label">Settore</div>
-          <div class="field-value">
-            <span class="badge">{settore}</span>
-            <span class="badge">{sottosettore}</span>
+          <div class="label">Settore</div>
+          <div class="value">
+            <span class="tag tag-blue">{settore}</span>
+            <span class="tag tag-gray">{sottosettore}</span>
           </div>
         </div>
         <div class="field">
-          <div class="field-label">Dimensione</div>
-          <div class="field-value">{dimensione_mercato}</div>
+          <div class="label">Dimensione mercato</div>
+          <div class="value">{dimensione_mercato}</div>
         </div>
         <div class="field">
-          <div class="field-label">Tasso di crescita</div>
-          <div class="field-value">{tasso_di_crescita}</div>
+          <div class="label">Tasso di crescita</div>
+          <div class="value">{tasso_di_crescita}</div>
         </div>
         <div class="field">
-          <div class="field-label">Driver di mercato</div>
-          <div class="field-value">{driver_di_mercato}</div>
+          <div class="label">Driver di mercato</div>
+          <div class="value">{driver_di_mercato}</div>
         </div>
       </div>
       <div>
         <div class="field">
-          <div class="field-label">Struttura della catena del valore</div>
-          <div class="field-value">{struttura_catena}</div>
+          <div class="label">Struttura della catena del valore</div>
+          <div class="value">{struttura_catena}</div>
         </div>
         <div class="field">
-          <div class="field-label">Posizionamento nella catena</div>
-          <div class="field-value">{posizionamento_catena}</div>
+          <div class="label">Posizionamento nella catena</div>
+          <div class="value">{posizionamento_catena}</div>
         </div>
         <div class="field">
-          <div class="field-label">Dipendenze strategiche</div>
-          <div class="field-value">{dipendenze}</div>
+          <div class="label">Dipendenze strategiche</div>
+          <div class="value">{dipendenze}</div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="section">
-    <h2>Arena Competitiva</h2>
+  <!-- Competizione -->
+  <div class="card">
+    <div class="card-title">Arena Competitiva</div>
     <div class="field">
-      <div class="field-label">Vantaggio dichiarato dal founder</div>
-      <div class="field-value">{vantaggio_dichiarato}</div>
+      <div class="label">Vantaggio dichiarato dal founder</div>
+      <div class="value">{vantaggio_dichiarato}</div>
     </div>
     <div class="field">
-      <div class="field-label">Valutazione critica del vantaggio</div>
-      <div class="field-value">{valutazione_vantaggio}</div>
+      <div class="label">Valutazione critica</div>
+      <div class="value">{valutazione_vantaggio}</div>
     </div>
     {competitors_section}
   </div>
 
-  <div class="section">
-    <h2>Domande per il Founder</h2>
-    <ol class="question-list">
+  <!-- Domande -->
+  <div class="card">
+    <div class="card-title">Domande per il Founder</div>
+    <ol class="q-list">
       {questions_html}
     </ol>
   </div>
 
-  <div class="section">
-    <h2>Punti di Attenzione</h2>
+  <!-- Flags -->
+  <div class="card">
+    <div class="card-title">Punti di Attenzione</div>
     {flags_html}
   </div>
 
-  <div class="footer">
-    Generato da pitch-analyzer · {pdf_filename}
-  </div>
+  <div class="footer">pitch-analyzer · {pdf_filename}</div>
 
 </div>
+
+<!-- Confronto FAB -->
+<button id="compare-fab" onclick="togglePanel()">
+  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+       viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+  Confronta con…
+</button>
+
+<div id="compare-panel">
+  <h3>Confronta con un'altra società</h3>
+  <input id="compare-input" type="text" placeholder="es. Cyberwave"
+         onkeydown="if(event.key==='Enter') runCompare()"/>
+  <button id="compare-go" onclick="runCompare()">Analizza e confronta</button>
+  <div id="compare-status"></div>
+</div>
+
+<script>
+const ANALYSIS = {analysis_json};
+const SERVER   = 'http://localhost:5000';
+
+function togglePanel() {{
+  document.getElementById('compare-panel').classList.toggle('open');
+}}
+
+function closeCompare() {{
+  document.getElementById('compare-result').classList.remove('visible');
+}}
+
+async function runCompare() {{
+  const input  = document.getElementById('compare-input');
+  const go     = document.getElementById('compare-go');
+  const status = document.getElementById('compare-status');
+  const name   = input.value.trim();
+  if (!name) return;
+
+  go.disabled = true;
+  go.textContent = 'Analisi in corso…';
+  status.textContent = 'Sto cercando informazioni su ' + name + '…';
+
+  try {{
+    const resp = await fetch(SERVER + '/compare', {{
+      method: 'POST',
+      headers: {{'Content-Type': 'application/json'}},
+      body: JSON.stringify({{ company_name: name, analysis: ANALYSIS }})
+    }});
+    if (!resp.ok) throw new Error('Errore server');
+    const data = await resp.json();
+    renderComparison(name, data);
+    document.getElementById('compare-panel').classList.remove('open');
+    status.textContent = '';
+  }} catch(e) {{
+    status.textContent = '⚠️ Server non raggiungibile. Avvia python3 server.py';
+  }} finally {{
+    go.disabled = false;
+    go.textContent = 'Analizza e confronta';
+  }}
+}}
+
+function renderComparison(nameB, d) {{
+  const nA = ANALYSIS.nome_azienda || 'Società A';
+  const b  = d.societa_b || {{}};
+
+  document.getElementById('cr-title').textContent = nA + ' vs ' + b.nome;
+
+  document.getElementById('cr-companies').innerHTML = `
+    <div class="cr-co">
+      <div class="cr-co-name">${{nA}}</div>
+      <div class="cr-co-desc">${{(ANALYSIS.business||{{}}).descrizione_breve || ''}}</div>
+    </div>
+    <div class="cr-co">
+      <div class="cr-co-name">${{b.nome}}</div>
+      <div class="cr-co-desc">${{b.descrizione || ''}}</div>
+    </div>`;
+
+  const dims = {{
+    'Modello di business': 'modello_di_business',
+    'Posizionamento mercato': 'posizionamento_mercato',
+    'Tecnologia e prodotto': 'tecnologia_e_prodotto',
+    'Traction e momentum': 'traction_e_momentum',
+    'Team': 'team'
+  }};
+
+  const cfr = d.confronto || {{}};
+  let rows = '';
+  for (const [label, key] of Object.entries(dims)) {{
+    const row = cfr[key] || {{}};
+    const v   = (row.vantaggio || '').toLowerCase();
+    const wCls = v.includes('pari') ? 'pari' : v.includes('b') ? 'b' : '';
+    const wTxt = v.includes('pari') ? 'Pari' : v.includes('b') ? b.nome : nA;
+    rows += `<div class="cr-row">
+      <div class="cr-dim">${{label}}</div>
+      <div class="cr-cell">${{row.a || '—'}}</div>
+      <div class="cr-cell">${{row.b || '—'}}</div>
+      <div class="cr-winner ${{wCls}}">${{wTxt}}</div>
+    </div>`;
+  }}
+  document.getElementById('cr-rows').innerHTML = rows;
+  document.getElementById('cr-sintesi').innerHTML =
+    '<strong>Sintesi:</strong> ' + (d.sintesi || '');
+
+  const el = document.getElementById('compare-result');
+  el.classList.add('visible');
+  el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+}}
+</script>
 </body>
 </html>"""
 
@@ -509,8 +755,8 @@ def phase2_analyze(client: OpenAI, nome: str, pdf_text: str, web_ctx: str) -> di
 def render_html(data: dict, pdf_filename: str, web_used: bool) -> str:
     nome = data.get("nome_azienda", "Startup")
     tagline = data.get("tagline") or ""
-    tagline_html = f'<div class="tagline">"{tagline}"</div>' if tagline else ""
-    web_badge = ' <span class="web-badge">+ ricerca web</span>' if web_used else ""
+    tagline_html = f'<div class="hd-tagline">"{tagline}"</div>' if tagline else ""
+    web_badge = '<span class="pill teal">+ ricerca web</span>' if web_used else ""
 
     biz = data.get("business", {})
     prod = data.get("prodotto_tecnologia", {})
@@ -519,7 +765,7 @@ def render_html(data: dict, pdf_filename: str, web_used: bool) -> str:
     comp = data.get("competizione", {})
 
     features = prod.get("caratteristiche_chiave", [])
-    features_html = "".join(f'<span class="badge green">{f}</span>' for f in features)
+    features_html = "".join(f'<span class="tag tag-green">{f}</span>' for f in features)
 
     team_html = ""
     for p in team_data.get("fondatori", []):
@@ -530,15 +776,15 @@ def render_html(data: dict, pdf_filename: str, web_used: bool) -> str:
         </div>"""
 
     def comp_cards(players, label):
-        return "".join(f"""<div class="competitor-card">
-          <div class="c-label">{label}</div>
+        return "".join(f"""<div class="comp-card">
+          <div class="c-badge">{label}</div>
           <div class="c-name">{c.get('nome','')}</div>
           <div class="c-desc">{c.get('descrizione','')}</div>
         </div>""" for c in players)
 
     all_cards = comp_cards(comp.get("player_globali", []), "Globale") + \
                 comp_cards(comp.get("player_europei", []), "Europeo")
-    competitors_section = f'<div class="competitor-grid">{all_cards}</div>' if all_cards else ""
+    competitors_section = f'<div class="comp-grid">{all_cards}</div>' if all_cards else ""
 
     questions_html = "".join(f"<li>{q}</li>" for q in data.get("domande_per_il_founder", []))
 
@@ -546,15 +792,17 @@ def render_html(data: dict, pdf_filename: str, web_used: bool) -> str:
     for f in data.get("punti_di_attenzione", []):
         gravita = f.get("gravità", f.get("gravita", "Media"))
         css_class = "alta" if gravita.lower() == "alta" else ""
-        flags_html += f"""<div class="flag-card {css_class}">
-          <div class="flag-header">
-            <span class="flag-area">{f.get('area','')}</span>
-            <span class="flag-gravita">{gravita}</span>
+        flags_html += f"""<div class="flag {css_class}">
+          <div class="flag-hd">
+            <span class="f-area">{f.get('area','')}</span>
+            <span class="f-sev">{gravita}</span>
           </div>
-          <div class="flag-desc">{f.get('descrizione','')}</div>
+          <div class="f-desc">{f.get('descrizione','')}</div>
         </div>"""
     if not flags_html:
-        flags_html = '<p style="color:#a0aec0">Nessun punto critico identificato.</p>'
+        flags_html = '<p style="color:var(--text-3)">Nessun punto critico identificato.</p>'
+
+    analysis_json = json.dumps(data, ensure_ascii=False)
 
     return HTML_TEMPLATE.format(
         nome_azienda=nome,
@@ -586,6 +834,7 @@ def render_html(data: dict, pdf_filename: str, web_used: bool) -> str:
         questions_html=questions_html,
         flags_html=flags_html,
         pdf_filename=pdf_filename,
+        analysis_json=analysis_json,
     )
 
 # ---------------------------------------------------------------------------
@@ -606,7 +855,7 @@ def main():
         sys.exit(1)
 
     output_path = Path(args.output) if args.output else \
-        pdf_path.with_name(pdf_path.stem + "_analisi.html")
+        OUTPUT_DIR / (pdf_path.stem + "_analisi.html")
 
     print(f"Carico PDF: {pdf_path.name} ({pdf_path.stat().st_size / 1024:.0f} KB)")
     pdf_text = extract_text_from_pdf(pdf_path)
