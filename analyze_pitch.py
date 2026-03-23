@@ -17,9 +17,6 @@ import webbrowser
 from datetime import datetime
 from pathlib import Path
 
-OUTPUT_DIR = Path(__file__).parent / "output"
-OUTPUT_DIR.mkdir(exist_ok=True)
-
 import pdfplumber
 import requests
 from bs4 import BeautifulSoup
@@ -319,71 +316,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     text-align: center; color: var(--text-3); font-size: 12px; margin-top: 32px;
   }}
 
-  /* ── Confronto widget ── */
-  #compare-fab {{
-    position: fixed; bottom: 28px; right: 28px; z-index: 100;
-    background: var(--accent); color: #fff; border: none; cursor: pointer;
-    border-radius: 99px; padding: 12px 20px; font-size: 14px; font-weight: 600;
-    box-shadow: 0 4px 16px rgba(0,0,0,.2); display: flex; align-items: center; gap: 8px;
-    transition: transform .15s, box-shadow .15s;
-  }}
-  #compare-fab:hover {{ transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.25); }}
-  #compare-panel {{
-    position: fixed; bottom: 88px; right: 28px; z-index: 99;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--r); box-shadow: 0 8px 32px rgba(0,0,0,.12);
-    padding: 20px; width: 320px; display: none;
-  }}
-  #compare-panel.open {{ display: block; }}
-  #compare-panel h3 {{ font-size: 13px; font-weight: 700; margin-bottom: 12px; }}
-  #compare-input {{
-    width: 100%; border: 1px solid var(--border); border-radius: var(--r-sm);
-    padding: 10px 12px; font-size: 14px; background: var(--bg); outline: none;
-    color: var(--text);
-  }}
-  #compare-input:focus {{ border-color: var(--accent); }}
-  #compare-go {{
-    width: 100%; margin-top: 10px; background: var(--accent); color: #fff;
-    border: none; border-radius: var(--r-sm); padding: 10px; font-size: 14px;
-    font-weight: 600; cursor: pointer;
-  }}
-  #compare-go:disabled {{ opacity: .5; cursor: not-allowed; }}
-  #compare-status {{ font-size: 12px; color: var(--text-3); margin-top: 8px; text-align: center; }}
-
-  /* ── Confronto risultati ── */
-  #compare-result {{
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--r); padding: 28px; margin-bottom: 16px; display: none;
-    box-shadow: var(--shadow);
-  }}
-  #compare-result.visible {{ display: block; }}
-  .cr-header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }}
-  .cr-header h2 {{ font-size: 16px; font-weight: 700; }}
-  .cr-close {{ background: none; border: 1px solid var(--border); border-radius: 6px;
-               padding: 4px 12px; cursor: pointer; font-size: 12px; color: var(--text-2); }}
-  .cr-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }}
-  .cr-co {{ background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 14px; }}
-  .cr-co-name {{ font-weight: 700; font-size: 15px; margin-bottom: 4px; }}
-  .cr-co-desc {{ font-size: 13px; color: var(--text-2); line-height: 1.55; }}
-  .cr-rows {{ display: flex; flex-direction: column; gap: 0; }}
-  .cr-row {{ display: grid; grid-template-columns: 120px 1fr 1fr 80px; gap: 12px;
-             padding: 14px 0; border-bottom: 1px solid var(--border); align-items: start; }}
-  .cr-row:last-child {{ border-bottom: none; }}
-  .cr-dim {{ font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
-             color: var(--text-3); padding-top: 2px; }}
-  .cr-cell {{ font-size: 13px; color: var(--text-2); line-height: 1.55; }}
-  .cr-winner {{
-    font-size: 11px; font-weight: 700; text-align: center; padding: 3px 8px;
-    border-radius: 6px; background: var(--green-bg); color: var(--green);
-  }}
-  .cr-winner.b {{ background: var(--blue-bg); color: var(--blue); }}
-  .cr-winner.pari {{ background: #f4f4f5; color: #52525b; }}
-  .cr-sintesi {{
-    margin-top: 16px; background: var(--bg); border: 1px solid var(--border);
-    border-radius: var(--r-sm); padding: 16px;
-    font-size: 14px; color: var(--text-2); line-height: 1.7;
-  }}
-  .cr-sintesi strong {{ color: var(--text); }}
 </style>
 </head>
 <body>
@@ -405,17 +337,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <div class="synthesis">
     <div class="s-label">Sintesi del Partner</div>
     <p>{sintesi}</p>
-  </div>
-
-  <!-- Confronto risultati (appare qui quando richiesto) -->
-  <div id="compare-result">
-    <div class="cr-header">
-      <h2 id="cr-title">Confronto</h2>
-      <button class="cr-close" onclick="closeCompare()">Chiudi ✕</button>
-    </div>
-    <div class="cr-grid" id="cr-companies"></div>
-    <div class="cr-rows" id="cr-rows"></div>
-    <div class="cr-sintesi" id="cr-sintesi"></div>
   </div>
 
   <!-- Business -->
@@ -545,111 +466,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <div class="footer">pitch-analyzer · {pdf_filename}</div>
 
 </div>
-
-<!-- Confronto FAB -->
-<button id="compare-fab" onclick="togglePanel()">
-  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
-       viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
-  Confronta con…
-</button>
-
-<div id="compare-panel">
-  <h3>Confronta con un'altra società</h3>
-  <input id="compare-input" type="text" placeholder="es. Cyberwave"
-         onkeydown="if(event.key==='Enter') runCompare()"/>
-  <button id="compare-go" onclick="runCompare()">Analizza e confronta</button>
-  <div id="compare-status"></div>
-</div>
-
-<script>
-const ANALYSIS = {analysis_json};
-const SERVER   = 'http://localhost:5000';
-
-function togglePanel() {{
-  document.getElementById('compare-panel').classList.toggle('open');
-}}
-
-function closeCompare() {{
-  document.getElementById('compare-result').classList.remove('visible');
-}}
-
-async function runCompare() {{
-  const input  = document.getElementById('compare-input');
-  const go     = document.getElementById('compare-go');
-  const status = document.getElementById('compare-status');
-  const name   = input.value.trim();
-  if (!name) return;
-
-  go.disabled = true;
-  go.textContent = 'Analisi in corso…';
-  status.textContent = 'Sto cercando informazioni su ' + name + '…';
-
-  try {{
-    const resp = await fetch(SERVER + '/compare', {{
-      method: 'POST',
-      headers: {{'Content-Type': 'application/json'}},
-      body: JSON.stringify({{ company_name: name, analysis: ANALYSIS }})
-    }});
-    if (!resp.ok) throw new Error('Errore server');
-    const data = await resp.json();
-    renderComparison(name, data);
-    document.getElementById('compare-panel').classList.remove('open');
-    status.textContent = '';
-  }} catch(e) {{
-    status.textContent = '⚠️ Server non raggiungibile. Avvia python3 server.py';
-  }} finally {{
-    go.disabled = false;
-    go.textContent = 'Analizza e confronta';
-  }}
-}}
-
-function renderComparison(nameB, d) {{
-  const nA = ANALYSIS.nome_azienda || 'Società A';
-  const b  = d.societa_b || {{}};
-
-  document.getElementById('cr-title').textContent = nA + ' vs ' + b.nome;
-
-  document.getElementById('cr-companies').innerHTML = `
-    <div class="cr-co">
-      <div class="cr-co-name">${{nA}}</div>
-      <div class="cr-co-desc">${{(ANALYSIS.business||{{}}).descrizione_breve || ''}}</div>
-    </div>
-    <div class="cr-co">
-      <div class="cr-co-name">${{b.nome}}</div>
-      <div class="cr-co-desc">${{b.descrizione || ''}}</div>
-    </div>`;
-
-  const dims = {{
-    'Modello di business': 'modello_di_business',
-    'Posizionamento mercato': 'posizionamento_mercato',
-    'Tecnologia e prodotto': 'tecnologia_e_prodotto',
-    'Traction e momentum': 'traction_e_momentum',
-    'Team': 'team'
-  }};
-
-  const cfr = d.confronto || {{}};
-  let rows = '';
-  for (const [label, key] of Object.entries(dims)) {{
-    const row = cfr[key] || {{}};
-    const v   = (row.vantaggio || '').toLowerCase();
-    const wCls = v.includes('pari') ? 'pari' : v.includes('b') ? 'b' : '';
-    const wTxt = v.includes('pari') ? 'Pari' : v.includes('b') ? b.nome : nA;
-    rows += `<div class="cr-row">
-      <div class="cr-dim">${{label}}</div>
-      <div class="cr-cell">${{row.a || '—'}}</div>
-      <div class="cr-cell">${{row.b || '—'}}</div>
-      <div class="cr-winner ${{wCls}}">${{wTxt}}</div>
-    </div>`;
-  }}
-  document.getElementById('cr-rows').innerHTML = rows;
-  document.getElementById('cr-sintesi').innerHTML =
-    '<strong>Sintesi:</strong> ' + (d.sintesi || '');
-
-  const el = document.getElementById('compare-result');
-  el.classList.add('visible');
-  el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
-}}
-</script>
 </body>
 </html>"""
 
@@ -802,8 +618,6 @@ def render_html(data: dict, pdf_filename: str, web_used: bool) -> str:
     if not flags_html:
         flags_html = '<p style="color:var(--text-3)">Nessun punto critico identificato.</p>'
 
-    analysis_json = json.dumps(data, ensure_ascii=False)
-
     return HTML_TEMPLATE.format(
         nome_azienda=nome,
         tagline_html=tagline_html,
@@ -834,7 +648,6 @@ def render_html(data: dict, pdf_filename: str, web_used: bool) -> str:
         questions_html=questions_html,
         flags_html=flags_html,
         pdf_filename=pdf_filename,
-        analysis_json=analysis_json,
     )
 
 # ---------------------------------------------------------------------------
@@ -855,7 +668,7 @@ def main():
         sys.exit(1)
 
     output_path = Path(args.output) if args.output else \
-        OUTPUT_DIR / (pdf_path.stem + "_analisi.html")
+        pdf_path.parent / (pdf_path.stem + "_analisi.html")
 
     print(f"Carico PDF: {pdf_path.name} ({pdf_path.stat().st_size / 1024:.0f} KB)")
     pdf_text = extract_text_from_pdf(pdf_path)
