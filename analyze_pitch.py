@@ -139,7 +139,9 @@ Non aggiungere testo fuori dal JSON. Tutto in italiano.
 }}"""
 
 # ---------------------------------------------------------------------------
-# HTML template  (Lovable-inspired design + confronto societá)
+# HTML template  — React + Lovable design
+# Note: uses str.replace() not .format(), so no {{ }} escaping needed.
+# Placeholders: __ANALYSIS_JSON__  __WEB_USED__  __PDF_FILENAME__
 # ---------------------------------------------------------------------------
 
 HTML_TEMPLATE = """<!DOCTYPE html>
@@ -147,325 +149,306 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{nome_azienda} — Analisi Pitch</title>
-<style>
-  /* ── Reset & base ── */
-  *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
-  :root {{
-    --bg:       #fcfbf8;
-    --surface:  #ffffff;
-    --border:   #e8e3da;
-    --text:     #1c1917;
-    --text-2:   #57534e;
-    --text-3:   #a8a29e;
-    --accent:   #18181b;
-    --red:      #dc2626;
-    --red-bg:   #fef2f2;
-    --red-br:   #fecaca;
-    --orange:   #c2410c;
-    --orange-bg:#fff7ed;
-    --orange-br:#fed7aa;
-    --green:    #15803d;
-    --green-bg: #f0fdf4;
-    --blue:     #1d4ed8;
-    --blue-bg:  #eff6ff;
-    --r:        14px;
-    --r-sm:     8px;
-    --shadow:   0 1px 4px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04);
-  }}
-  body {{
-    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
-    font-size: 14px; line-height: 1.65; color: var(--text);
-    background: var(--bg); padding: 32px 16px 80px;
-  }}
-  .wrap {{ max-width: 940px; margin: 0 auto; }}
-
-  /* ── Header ── */
-  .hd {{
-    padding: 40px 0 28px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 28px;
-  }}
-  .hd-eyebrow {{
-    font-size: 11px; font-weight: 600; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--text-3); margin-bottom: 10px;
-  }}
-  .hd h1 {{
-    font-size: 36px; font-weight: 700; letter-spacing: -.8px;
-    color: var(--text); line-height: 1.15; margin-bottom: 8px;
-  }}
-  .hd-tagline {{
-    font-size: 16px; color: var(--text-2); margin-bottom: 16px; font-style: italic;
-  }}
-  .hd-meta {{ display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }}
-  .pill {{
-    display: inline-flex; align-items: center; gap: 5px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 99px; padding: 3px 12px;
-    font-size: 12px; font-weight: 500; color: var(--text-2);
-  }}
-  .pill.teal {{ background:#f0fdfa; border-color:#99f6e4; color:#0f766e; }}
-
-  /* ── Synthesis ── */
-  .synthesis {{
-    background: var(--accent); color: #fff;
-    border-radius: var(--r); padding: 28px 30px; margin-bottom: 20px;
-  }}
-  .synthesis .s-label {{
-    font-size: 10px; font-weight: 700; letter-spacing: .1em;
-    text-transform: uppercase; color: rgba(255,255,255,.45); margin-bottom: 10px;
-  }}
-  .synthesis p {{ font-size: 15px; line-height: 1.8; color: rgba(255,255,255,.9); }}
-
-  /* ── Cards ── */
-  .card {{
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--r); padding: 26px 28px; margin-bottom: 16px;
-    box-shadow: var(--shadow);
-  }}
-  .card-title {{
-    font-size: 10px; font-weight: 700; letter-spacing: .1em;
-    text-transform: uppercase; color: var(--text-3);
-    padding-bottom: 14px; border-bottom: 1px solid var(--border); margin-bottom: 20px;
-  }}
-  .grid2 {{ display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }}
-  @media (max-width:640px) {{ .grid2 {{ grid-template-columns: 1fr; }} }}
-
-  /* ── Fields ── */
-  .field {{ margin-bottom: 20px; }}
-  .field:last-child {{ margin-bottom: 0; }}
-  .label {{
-    font-size: 10px; font-weight: 700; letter-spacing: .07em;
-    text-transform: uppercase; color: var(--text-3); margin-bottom: 6px;
-  }}
-  .value {{ font-size: 14px; color: var(--text-2); line-height: 1.7; }}
-
-  /* ── Tags ── */
-  .tag {{
-    display: inline-block; border-radius: 6px;
-    padding: 2px 10px; font-size: 12px; font-weight: 600; margin: 2px;
-  }}
-  .tag-blue  {{ background: var(--blue-bg);   color: var(--blue);   }}
-  .tag-green {{ background: var(--green-bg);  color: var(--green);  }}
-  .tag-orange{{ background: var(--orange-bg); color: var(--orange); }}
-  .tag-gray  {{ background: #f4f4f5; color: #52525b; }}
-
-  /* ── Team ── */
-  .team-card {{
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: var(--r-sm); padding: 16px; margin-bottom: 10px;
-  }}
-  .team-card:last-child {{ margin-bottom: 0; }}
-  .t-name {{ font-weight: 700; font-size: 14px; margin-bottom: 2px; }}
-  .t-role  {{ font-size: 12px; color: var(--text-3); margin-bottom: 8px; }}
-  .t-bg    {{ font-size: 13px; color: var(--text-2); line-height: 1.6; }}
-
-  /* ── Competitors ── */
-  .comp-grid {{
-    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;
-  }}
-  @media (max-width:640px) {{ .comp-grid {{ grid-template-columns: 1fr; }} }}
-  .comp-card {{
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: var(--r-sm); padding: 14px;
-  }}
-  .c-badge {{
-    font-size: 10px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .06em; color: var(--text-3); margin-bottom: 5px;
-  }}
-  .c-name {{ font-weight: 700; font-size: 14px; margin-bottom: 6px; }}
-  .c-desc  {{ font-size: 13px; color: var(--text-2); line-height: 1.55; }}
-
-  /* ── Questions ── */
-  .q-list {{ list-style: none; counter-reset: q; }}
-  .q-list li {{
-    counter-increment: q; display: flex; gap: 14px;
-    padding: 13px 0; border-bottom: 1px solid var(--border); align-items: flex-start;
-  }}
-  .q-list li:last-child {{ border-bottom: none; }}
-  .q-list li::before {{
-    content: counter(q);
-    background: var(--accent); color: #fff;
-    font-size: 11px; font-weight: 700; min-width: 22px; height: 22px;
-    border-radius: 50%; display: flex; align-items: center;
-    justify-content: center; flex-shrink: 0; margin-top: 1px;
-  }}
-
-  /* ── Flags ── */
-  .flag {{
-    border-radius: var(--r-sm); padding: 14px 16px; margin-bottom: 10px;
-    background: var(--orange-bg); border: 1px solid var(--orange-br);
-  }}
-  .flag.alta {{ background: var(--red-bg); border-color: var(--red-br); }}
-  .flag:last-child {{ margin-bottom: 0; }}
-  .flag-hd {{ display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }}
-  .f-area {{
-    font-size: 10px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .06em; color: var(--orange);
-  }}
-  .flag.alta .f-area {{ color: var(--red); }}
-  .f-sev {{
-    font-size: 10px; font-weight: 700; padding: 2px 8px;
-    border-radius: 4px; background: var(--orange-br); color: var(--orange);
-  }}
-  .flag.alta .f-sev {{ background: var(--red-br); color: var(--red); }}
-  .f-desc {{ font-size: 13px; color: var(--text-2); line-height: 1.6; }}
-
-  /* ── Footer ── */
-  .footer {{
-    text-align: center; color: var(--text-3); font-size: 12px; margin-top: 32px;
-  }}
-
-</style>
+<title>Analisi Pitch Deck</title>
+<style>* { box-sizing: border-box; margin: 0; padding: 0; } html { scroll-behavior: smooth; } body { background: #fcfbf8; }</style>
 </head>
 <body>
-<div class="wrap">
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui;color:#a8a29e;font-size:14px">Caricamento…</div></div>
+<script>
+window.__DATA__ = __ANALYSIS_JSON__;
+window.__WEB__  = __WEB_USED__;
+window.__FILE__ = __PDF_FILENAME__;
+</script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState } = React;
+const D    = window.__DATA__ || {};
+const web  = window.__WEB__;
+const file = window.__FILE__ || '';
 
-  <!-- Header -->
-  <div class="hd">
-    <div class="hd-eyebrow">Analisi Pitch Deck</div>
-    <h1>{nome_azienda}</h1>
-    {tagline_html}
-    <div class="hd-meta">
-      <span class="pill">{data}</span>
-      <span class="pill">GPT-4o</span>
-      {web_badge}
-    </div>
+const C = {
+  bg:'#fcfbf8', surface:'#fff', border:'#e8e3da',
+  t1:'#1c1917', t2:'#57534e', t3:'#a8a29e', dark:'#18181b',
+  red:'#dc2626',    redBg:'#fef2f2',    redBr:'#fecaca',
+  orange:'#c2410c', orangeBg:'#fff7ed', orangeBr:'#fed7aa',
+  green:'#15803d',  greenBg:'#f0fdf4',
+  blue:'#1d4ed8',   blueBg:'#eff6ff',
+};
+
+const Card = ({children, id}) => (
+  <div id={id} style={{background:C.surface, border:`1px solid ${C.border}`, borderRadius:16,
+    padding:'26px 28px', marginBottom:16, boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
+    {children}
   </div>
+);
 
-  <!-- Sintesi -->
-  <div class="synthesis">
-    <div class="s-label">Sintesi del Partner</div>
-    <p>{sintesi}</p>
+const CardTitle = ({children}) => (
+  <div style={{fontSize:11,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',
+    color:C.t3,paddingBottom:14,borderBottom:`1px solid ${C.border}`,marginBottom:20}}>
+    {children}
   </div>
+);
 
-  <!-- Business -->
-  <div class="card">
-    <div class="card-title">Business</div>
-    <div class="field">
-      <div class="label">Problema</div>
-      <div class="value">{problema}</div>
-    </div>
-    <div class="field">
-      <div class="label">Soluzione</div>
-      <div class="value">{soluzione}</div>
-    </div>
-    <div class="field">
-      <div class="label">Modello di business</div>
-      <div class="value">{modello_di_business}</div>
-    </div>
+const Field = ({label, children, mt}) => (
+  <div style={{marginBottom:20, marginTop:mt||0}}>
+    <div style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',
+      color:C.t3,marginBottom:6}}>{label}</div>
+    <div style={{fontSize:14,color:C.t2,lineHeight:1.7}}>{children}</div>
   </div>
+);
 
-  <!-- Prodotto -->
-  <div class="card">
-    <div class="card-title">Prodotto e Tecnologia</div>
-    <div class="field">
-      <div class="label">Descrizione</div>
-      <div class="value">{descrizione_prodotto}</div>
-    </div>
-    <div class="field">
-      <div class="label">Caratteristiche chiave</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">{features_html}</div>
-    </div>
-    <div class="grid2">
-      <div class="field">
-        <div class="label">Stack tecnologico</div>
-        <div class="value">{stack_tecnologico}</div>
-      </div>
-      <div class="field">
-        <div class="label">Stadio di sviluppo</div>
-        <div class="value"><span class="tag tag-orange">{stadio}</span></div>
-      </div>
-    </div>
-    <div class="field">
-      <div class="label">Differenziatore tecnologico</div>
-      <div class="value">{differenziatore_tecnologico}</div>
-    </div>
-  </div>
+const Tag = ({children, v='gray'}) => {
+  const m = {
+    blue:[C.blueBg,C.blue], green:[C.greenBg,C.green],
+    orange:[C.orangeBg,C.orange], red:[C.redBg,C.red], gray:['#f4f4f5','#52525b']
+  };
+  const [bg,color] = m[v]||m.gray;
+  return <span style={{display:'inline-block',background:bg,color,borderRadius:6,
+    padding:'2px 10px',fontSize:12,fontWeight:600,margin:2}}>{children}</span>;
+};
 
-  <!-- Team -->
-  <div class="card">
-    <div class="card-title">Team</div>
-    {team_html}
-    <div class="field" style="margin-top:16px">
-      <div class="label">Valutazione critica</div>
-      <div class="value">{valutazione_team}</div>
-    </div>
-  </div>
+const Pill = ({children, teal}) => (
+  <span style={{display:'inline-flex',alignItems:'center',
+    background:teal?'#f0fdfa':C.surface, border:`1px solid ${teal?'#99f6e4':C.border}`,
+    color:teal?'#0f766e':C.t2, borderRadius:99, padding:'3px 12px',
+    fontSize:12, fontWeight:500, marginRight:6}}>{children}</span>
+);
 
-  <!-- Mercato -->
-  <div class="card">
-    <div class="card-title">Mercato</div>
-    <div class="grid2">
-      <div>
-        <div class="field">
-          <div class="label">Settore</div>
-          <div class="value">
-            <span class="tag tag-blue">{settore}</span>
-            <span class="tag tag-gray">{sottosettore}</span>
-          </div>
-        </div>
-        <div class="field">
-          <div class="label">Dimensione mercato</div>
-          <div class="value">{dimensione_mercato}</div>
-        </div>
-        <div class="field">
-          <div class="label">Tasso di crescita</div>
-          <div class="value">{tasso_di_crescita}</div>
-        </div>
-        <div class="field">
-          <div class="label">Driver di mercato</div>
-          <div class="value">{driver_di_mercato}</div>
-        </div>
-      </div>
-      <div>
-        <div class="field">
-          <div class="label">Struttura della catena del valore</div>
-          <div class="value">{struttura_catena}</div>
-        </div>
-        <div class="field">
-          <div class="label">Posizionamento nella catena</div>
-          <div class="value">{posizionamento_catena}</div>
-        </div>
-        <div class="field">
-          <div class="label">Dipendenze strategiche</div>
-          <div class="value">{dipendenze}</div>
-        </div>
+function NavBar() {
+  const sections = [
+    ['business','Business'],['prodotto','Prodotto'],['team','Team'],
+    ['mercato','Mercato'],['competizione','Competizione'],
+    ['domande','Domande'],['rischi','Rischi'],
+  ];
+  const [hov, setHov] = useState(null);
+  return (
+    <div style={{position:'sticky',top:0,zIndex:50,background:'rgba(252,251,248,.92)',
+      backdropFilter:'blur(8px)',borderBottom:`1px solid ${C.border}`,padding:'10px 0',marginBottom:24}}>
+      <div style={{maxWidth:940,margin:'0 auto',padding:'0 16px',display:'flex',gap:4,overflowX:'auto'}}>
+        {sections.map(([id,label]) => (
+          <a key={id} href={`#${id}`}
+            onMouseEnter={()=>setHov(id)} onMouseLeave={()=>setHov(null)}
+            style={{display:'inline-flex',alignItems:'center',padding:'5px 12px',borderRadius:8,
+              fontSize:13,fontWeight:500,color:C.t2,textDecoration:'none',whiteSpace:'nowrap',
+              background:hov===id?C.border:'transparent',transition:'background .15s'}}>
+            {label}
+          </a>
+        ))}
       </div>
     </div>
-  </div>
+  );
+}
 
-  <!-- Competizione -->
-  <div class="card">
-    <div class="card-title">Arena Competitiva</div>
-    <div class="field">
-      <div class="label">Vantaggio dichiarato dal founder</div>
-      <div class="value">{vantaggio_dichiarato}</div>
+function Header() {
+  const nome = D.nome_azienda||'';
+  const tag  = D.tagline||'';
+  const date = new Date().toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});
+  return (
+    <div style={{padding:'40px 0 28px',borderBottom:`1px solid ${C.border}`,marginBottom:28}}>
+      <div style={{fontSize:11,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',
+        color:C.t3,marginBottom:10}}>Analisi Pitch Deck</div>
+      <h1 style={{fontSize:38,fontWeight:700,letterSpacing:'-.8px',color:C.t1,
+        lineHeight:1.15,marginBottom:8}}>{nome}</h1>
+      {tag && <div style={{fontSize:16,color:C.t2,marginBottom:12,fontStyle:'italic'}}>"{tag}"</div>}
+      <div style={{display:'flex',flexWrap:'wrap',gap:6,alignItems:'center',marginTop:8}}>
+        <Pill>{date}</Pill>
+        <Pill>GPT-4o</Pill>
+        {web && <Pill teal>+ ricerca web</Pill>}
+      </div>
     </div>
-    <div class="field">
-      <div class="label">Valutazione critica</div>
-      <div class="value">{valutazione_vantaggio}</div>
+  );
+}
+
+function Synthesis() {
+  return (
+    <div style={{background:C.dark,borderRadius:16,padding:'28px 30px',marginBottom:16}}>
+      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',
+        color:'rgba(255,255,255,.4)',marginBottom:10}}>Sintesi del Partner</div>
+      <p style={{fontSize:15,lineHeight:1.8,color:'rgba(255,255,255,.9)'}}>{D.sintesi}</p>
     </div>
-    {competitors_section}
-  </div>
+  );
+}
 
-  <!-- Domande -->
-  <div class="card">
-    <div class="card-title">Domande per il Founder</div>
-    <ol class="q-list">
-      {questions_html}
-    </ol>
-  </div>
+function BusinessSection() {
+  const b = D.business||{};
+  return (
+    <Card id="business">
+      <CardTitle>Business</CardTitle>
+      <Field label="Problema">{b.problema}</Field>
+      <Field label="Soluzione">{b.soluzione}</Field>
+      <Field label="Modello di business" mt={0}>{b.modello_di_business}</Field>
+    </Card>
+  );
+}
 
-  <!-- Flags -->
-  <div class="card">
-    <div class="card-title">Punti di Attenzione</div>
-    {flags_html}
-  </div>
+function ProductSection() {
+  const p = D.prodotto_tecnologia||{};
+  const feats = p.caratteristiche_chiave||[];
+  return (
+    <Card id="prodotto">
+      <CardTitle>Prodotto e Tecnologia</CardTitle>
+      <Field label="Descrizione">{p.descrizione}</Field>
+      <Field label="Caratteristiche chiave">
+        <div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:4}}>
+          {feats.map((f,i)=><Tag key={i} v="green">{f}</Tag>)}
+        </div>
+      </Field>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20}}>
+        <Field label="Stack tecnologico">{p.stack_tecnologico}</Field>
+        <Field label="Stadio"><Tag v="orange">{p.stadio_di_sviluppo}</Tag></Field>
+      </div>
+      <Field label="Differenziatore tecnologico" mt={4}>{p.differenziatore_tecnologico}</Field>
+    </Card>
+  );
+}
 
-  <div class="footer">pitch-analyzer · {pdf_filename}</div>
+function TeamSection() {
+  const t = D.team||{};
+  const founders = t.fondatori||[];
+  return (
+    <Card id="team">
+      <CardTitle>Team</CardTitle>
+      {founders.map((f,i)=>(
+        <div key={i} style={{background:C.bg,border:`1px solid ${C.border}`,
+          borderRadius:10,padding:16,marginBottom:10}}>
+          <div style={{fontWeight:700,fontSize:14,marginBottom:2}}>{f.nome}</div>
+          <div style={{fontSize:12,color:C.t3,marginBottom:8}}>{f.ruolo}</div>
+          <div style={{fontSize:13,color:C.t2,lineHeight:1.6}}>{f.background}</div>
+        </div>
+      ))}
+      <Field label="Valutazione critica" mt={16}>{t.valutazione_team}</Field>
+    </Card>
+  );
+}
 
-</div>
+function MarketSection() {
+  const m = D.mercato||{};
+  return (
+    <Card id="mercato">
+      <CardTitle>Mercato</CardTitle>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24}}>
+        <div>
+          <Field label="Settore">
+            <Tag v="blue">{m.settore}</Tag>
+            <Tag v="gray">{m.sottosettore}</Tag>
+          </Field>
+          <Field label="Dimensione mercato">{m.dimensione_mercato}</Field>
+          <Field label="Tasso di crescita">{m.tasso_di_crescita}</Field>
+          <Field label="Driver di mercato">{m.driver_di_mercato}</Field>
+        </div>
+        <div>
+          <Field label="Struttura catena del valore">{m.struttura_della_catena_del_valore}</Field>
+          <Field label="Posizionamento nella catena">{m.posizionamento_nella_catena}</Field>
+          <Field label="Dipendenze strategiche">{m.dipendenze_strategiche}</Field>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function CompetitionSection() {
+  const c = D.competizione||{};
+  const all = [
+    ...(c.player_globali||[]).map(p=>({...p,tipo:'Globale'})),
+    ...(c.player_europei||[]).map(p=>({...p,tipo:'Europeo'})),
+  ];
+  return (
+    <Card id="competizione">
+      <CardTitle>Arena Competitiva</CardTitle>
+      <Field label="Vantaggio dichiarato">{c.vantaggio_competitivo_dichiarato}</Field>
+      <Field label="Valutazione critica">{c.valutazione_critica_del_vantaggio}</Field>
+      {all.length>0 && (
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginTop:8}}>
+          {all.map((p,i)=>(
+            <div key={i} style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:10,padding:14}}>
+              <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',
+                letterSpacing:'.06em',color:C.t3,marginBottom:5}}>{p.tipo}</div>
+              <div style={{fontWeight:700,fontSize:14,marginBottom:6}}>{p.nome}</div>
+              <div style={{fontSize:13,color:C.t2,lineHeight:1.55}}>{p.descrizione}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function QuestionsSection() {
+  const qs = D.domande_per_il_founder||[];
+  return (
+    <Card id="domande">
+      <CardTitle>Domande per il Founder</CardTitle>
+      <ol style={{listStyle:'none'}}>
+        {qs.map((q,i)=>(
+          <li key={i} style={{display:'flex',gap:14,padding:'13px 0',
+            borderBottom:i<qs.length-1?`1px solid ${C.border}`:'none',alignItems:'flex-start'}}>
+            <span style={{background:C.dark,color:'#fff',fontSize:11,fontWeight:700,
+              minWidth:22,height:22,borderRadius:'50%',display:'flex',alignItems:'center',
+              justifyContent:'center',flexShrink:0,marginTop:1}}>{i+1}</span>
+            <span style={{fontSize:14,color:C.t2,lineHeight:1.7}}>{q}</span>
+          </li>
+        ))}
+      </ol>
+    </Card>
+  );
+}
+
+function FlagsSection() {
+  const flags = D.punti_di_attenzione||[];
+  return (
+    <Card id="rischi">
+      <CardTitle>Punti di Attenzione</CardTitle>
+      {flags.length===0
+        ? <p style={{color:C.t3,fontSize:14}}>Nessun punto critico identificato.</p>
+        : flags.map((f,i)=>{
+          const g = f.gravità||f.gravita||'Media';
+          const alta = g.toLowerCase()==='alta';
+          return (
+            <div key={i} style={{background:alta?C.redBg:C.orangeBg,
+              border:`1px solid ${alta?C.redBr:C.orangeBr}`,
+              borderRadius:10,padding:'14px 16px',marginBottom:i<flags.length-1?10:0}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:7}}>
+                <span style={{fontSize:10,fontWeight:700,textTransform:'uppercase',
+                  letterSpacing:'.06em',color:alta?C.red:C.orange}}>{f.area}</span>
+                <span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:4,
+                  background:alta?C.redBr:C.orangeBr,color:alta?C.red:C.orange}}>{g}</span>
+              </div>
+              <div style={{fontSize:13,color:C.t2,lineHeight:1.6}}>{f.descrizione}</div>
+            </div>
+          );
+        })
+      }
+    </Card>
+  );
+}
+
+function App() {
+  return (
+    <div style={{fontFamily:'-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif',
+      fontSize:14,lineHeight:'1.65',color:C.t1,background:C.bg,minHeight:'100vh'}}>
+      <NavBar />
+      <div style={{maxWidth:940,margin:'0 auto',padding:'0 16px 80px'}}>
+        <Header />
+        <Synthesis />
+        <BusinessSection />
+        <ProductSection />
+        <TeamSection />
+        <MarketSection />
+        <CompetitionSection />
+        <QuestionsSection />
+        <FlagsSection />
+        <div style={{textAlign:'center',color:C.t3,fontSize:12,marginTop:32}}>
+          pitch-analyzer · {file}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
 </body>
 </html>"""
 
@@ -569,86 +552,10 @@ def phase2_analyze(client: OpenAI, nome: str, pdf_text: str, web_ctx: str) -> di
 # ---------------------------------------------------------------------------
 
 def render_html(data: dict, pdf_filename: str, web_used: bool) -> str:
-    nome = data.get("nome_azienda", "Startup")
-    tagline = data.get("tagline") or ""
-    tagline_html = f'<div class="hd-tagline">"{tagline}"</div>' if tagline else ""
-    web_badge = '<span class="pill teal">+ ricerca web</span>' if web_used else ""
-
-    biz = data.get("business", {})
-    prod = data.get("prodotto_tecnologia", {})
-    team_data = data.get("team", {})
-    mkt = data.get("mercato", {})
-    comp = data.get("competizione", {})
-
-    features = prod.get("caratteristiche_chiave", [])
-    features_html = "".join(f'<span class="tag tag-green">{f}</span>' for f in features)
-
-    team_html = ""
-    for p in team_data.get("fondatori", []):
-        team_html += f"""<div class="team-card">
-          <div class="t-name">{p.get('nome','')}</div>
-          <div class="t-role">{p.get('ruolo','')}</div>
-          <div class="t-bg">{p.get('background','')}</div>
-        </div>"""
-
-    def comp_cards(players, label):
-        return "".join(f"""<div class="comp-card">
-          <div class="c-badge">{label}</div>
-          <div class="c-name">{c.get('nome','')}</div>
-          <div class="c-desc">{c.get('descrizione','')}</div>
-        </div>""" for c in players)
-
-    all_cards = comp_cards(comp.get("player_globali", []), "Globale") + \
-                comp_cards(comp.get("player_europei", []), "Europeo")
-    competitors_section = f'<div class="comp-grid">{all_cards}</div>' if all_cards else ""
-
-    questions_html = "".join(f"<li>{q}</li>" for q in data.get("domande_per_il_founder", []))
-
-    flags_html = ""
-    for f in data.get("punti_di_attenzione", []):
-        gravita = f.get("gravità", f.get("gravita", "Media"))
-        css_class = "alta" if gravita.lower() == "alta" else ""
-        flags_html += f"""<div class="flag {css_class}">
-          <div class="flag-hd">
-            <span class="f-area">{f.get('area','')}</span>
-            <span class="f-sev">{gravita}</span>
-          </div>
-          <div class="f-desc">{f.get('descrizione','')}</div>
-        </div>"""
-    if not flags_html:
-        flags_html = '<p style="color:var(--text-3)">Nessun punto critico identificato.</p>'
-
-    return HTML_TEMPLATE.format(
-        nome_azienda=nome,
-        tagline_html=tagline_html,
-        data=datetime.now().strftime("%d %B %Y"),
-        web_badge=web_badge,
-        sintesi=data.get("sintesi", ""),
-        problema=biz.get("problema", ""),
-        soluzione=biz.get("soluzione", ""),
-        modello_di_business=biz.get("modello_di_business", ""),
-        descrizione_prodotto=prod.get("descrizione", ""),
-        features_html=features_html,
-        stack_tecnologico=prod.get("stack_tecnologico", "Non dichiarato"),
-        stadio=prod.get("stadio_di_sviluppo", ""),
-        differenziatore_tecnologico=prod.get("differenziatore_tecnologico", ""),
-        team_html=team_html,
-        valutazione_team=team_data.get("valutazione_team", ""),
-        settore=mkt.get("settore", ""),
-        sottosettore=mkt.get("sottosettore", ""),
-        dimensione_mercato=mkt.get("dimensione_mercato", ""),
-        tasso_di_crescita=mkt.get("tasso_di_crescita", ""),
-        driver_di_mercato=mkt.get("driver_di_mercato", ""),
-        struttura_catena=mkt.get("struttura_della_catena_del_valore", ""),
-        posizionamento_catena=mkt.get("posizionamento_nella_catena", ""),
-        dipendenze=mkt.get("dipendenze_strategiche", ""),
-        vantaggio_dichiarato=comp.get("vantaggio_competitivo_dichiarato", ""),
-        valutazione_vantaggio=comp.get("valutazione_critica_del_vantaggio", ""),
-        competitors_section=competitors_section,
-        questions_html=questions_html,
-        flags_html=flags_html,
-        pdf_filename=pdf_filename,
-    )
+    return (HTML_TEMPLATE
+        .replace('__ANALYSIS_JSON__', json.dumps(data, ensure_ascii=False))
+        .replace('__WEB_USED__', 'true' if web_used else 'false')
+        .replace('__PDF_FILENAME__', json.dumps(pdf_filename, ensure_ascii=False)))
 
 # ---------------------------------------------------------------------------
 # Main
