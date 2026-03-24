@@ -227,8 +227,13 @@ def recent():
     result = []
     for f in files[:10]:
         mtime = datetime.datetime.fromtimestamp(f.stat().st_mtime)
+        meta_file = f.with_suffix(".json")
+        if meta_file.exists():
+            nome = json.loads(meta_file.read_text(encoding="utf-8")).get("nome", f.stem.replace("_analisi", ""))
+        else:
+            nome = f.stem.replace("_analisi", "")
         result.append({
-            "name": f.stem.replace("_analisi", ""),
+            "name": nome,
             "file": f.name,
             "date": mtime.strftime("%d %b %Y, %H:%M"),
         })
@@ -277,6 +282,10 @@ def analyze():
         out_name = Path(pdf_file.filename).stem + "_analisi.html"
         out_path = OUTPUT_DIR / out_name
         out_path.write_text(html, encoding="utf-8")
+
+        # Salva metadati (nome startup) accanto all'HTML
+        meta_path = out_path.with_suffix(".json")
+        meta_path.write_text(json.dumps({"nome": nome}, ensure_ascii=False), encoding="utf-8")
 
         return jsonify({"filename": out_name, "company": nome})
 
