@@ -71,10 +71,6 @@ Hai a disposizione:
 Produci un'analisi approfondita in JSON con la struttura esatta qui sotto.
 Non aggiungere testo fuori dal JSON. Tutto in italiano.
 
-REGOLE PER struttura_della_catena_del_valore:
-Ignora completamente quello che dice il deck. Costruisci la catena del valore usando SOLO la tua conoscenza di mercato. Testo libero, denso e specifico: 4-6 fasi, per ognuna descrivi cosa produce/scambia, chi cattura margine e perché, 3-5 player reali nominati (globali ed europei), flussi tra fasi, dove si concentra il potere. Segnala fasi in commoditizzazione o disruption. Vietato qualsiasi affermazione generica non ancorata a player o dinamiche specifiche del settore.
-Per fasi_visive: array con solo il nome breve di ogni fase e posizione_startup:true per la/le fasi in cui opera la startup.
-
 REGOLE PER domande_per_il_founder:
 Genera 7 domande partendo da ciò che questo specifico deck NON dice, dice in modo vago, o contraddice.
 Ogni domanda deve essere impossibile da riciclare su un altro deck: se funziona uguale togliendo il nome dell'azienda, è sbagliata e va riscritta.
@@ -116,11 +112,7 @@ Parti sempre da: cosa manca? cosa non torna? cosa è affermato ma non dimostrato
     "sottosettore": "Verticale o nicchia specifica",
     "dimensione_mercato": "TAM/SAM/SOM se dichiarati con fonte. Se non dichiarati, stima qualitativa motivata.",
     "tasso_di_crescita": "CAGR o trend se dichiarato o stimabile",
-    "struttura_della_catena_del_valore": "Analisi densa e specifica della catena del valore. Per ogni fase: nome, cosa produce/scambia, chi cattura margine e perché, player reali nominati (globali ed europei), flussi tra fasi, dove si concentra il potere. Segnala fasi in commoditizzazione o disruption. Vietato il generico.",
-    "fasi_visive": [
-      {{"fase": "Nome breve fase 1", "posizione_startup": false}},
-      {{"fase": "Nome breve fase 2", "posizione_startup": true}}
-    ],
+    "struttura_della_catena_del_valore": "IGNORA COMPLETAMENTE QUELLO CHE DICE IL DECK. Costruisci in autonomia la catena del valore del settore usando la tua conoscenza di mercato. Questo deve essere il pezzo più analitico dell'intero report. Requisiti minimi: (a) almeno 4-6 fasi distinte della catena, (b) per ogni fase: nome della fase, cosa produce/abilita, chi cattura margine e perché, 3-5 player reali globali ed europei con nome esplicito, (c) descrivi i flussi tra le fasi — cosa si scambia (denaro, dati, audience, IP, infrastruttura), (d) identifica dove si concentra il potere nella catena (chi detta le condizioni agli altri), (e) segnala eventuali fasi in fase di commoditizzazione o disruption. Formato libero ma denso e specifico.",
     "posizionamento_nella_catena": "Sulla base della catena del valore che hai costruito sopra in modo indipendente, posiziona con precisione questa azienda: in quale/i fase/i opera, da chi dipende per input (upstream), a chi serve o vende (downstream), se è un enabler B2B o serve il cliente finale, se presidia una sola fase o tenta di integrarsi verticalmente, dove cattura margine oggi vs dove potrebbe catturarne in futuro, e quali player della catena potrebbero disintermediarlo o replicarne la funzione.",
     "dipendenze_strategiche": "Da quali player/piattaforme/dati dipende? Qual è il rischio se quel player cambia le condizioni?",
     "driver_di_mercato": "Quali macro-trend o regolatori stanno creando il momento giusto per questa soluzione?"
@@ -335,46 +327,8 @@ function TeamSection() {
   );
 }
 
-function ValueChainDiagram({ fasi }) {
-  if (!fasi || !Array.isArray(fasi) || fasi.length === 0) return null;
-  return (
-    <div style={{overflowX:'auto',paddingBottom:4,paddingTop:18}}>
-      <div style={{display:'flex',alignItems:'center',gap:0,minWidth:'max-content'}}>
-        {fasi.map((f,i) => (
-          <React.Fragment key={i}>
-            <div style={{
-              position:'relative',
-              background: f.posizione_startup ? C.blueBg : C.surface,
-              border: `1.5px solid ${f.posizione_startup ? C.blue : C.border}`,
-              borderRadius:10, padding:'8px 14px',
-              textAlign:'center'
-            }}>
-              {f.posizione_startup && (
-                <div style={{
-                  position:'absolute',top:-18,left:'50%',transform:'translateX(-50%)',
-                  background:C.blue,color:'white',borderRadius:99,
-                  padding:'1px 8px',fontSize:9,fontWeight:700,whiteSpace:'nowrap'
-                }}>★ qui</div>
-              )}
-              <div style={{
-                fontWeight:700, fontSize:12, whiteSpace:'nowrap',
-                color: f.posizione_startup ? C.blue : C.t1
-              }}>{f.fase}</div>
-            </div>
-            {i < fasi.length-1 && (
-              <div style={{color:C.t3,fontSize:18,padding:'0 4px',flexShrink:0}}>→</div>
-            )}
-          </React.Fragment>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function MarketSection() {
   const m = D.mercato||{};
-  const fasi = Array.isArray(m.fasi_visive) ? m.fasi_visive : [];
-  const testo = m.struttura_della_catena_del_valore||'';
   return (
     <Card id="mercato">
       <CardTitle>Mercato</CardTitle>
@@ -389,20 +343,10 @@ function MarketSection() {
           <Field label="Driver di mercato">{m.driver_di_mercato}</Field>
         </div>
         <div>
+          <Field label="Struttura catena del valore">{m.struttura_della_catena_del_valore}</Field>
           <Field label="Posizionamento nella catena">{m.posizionamento_nella_catena}</Field>
           <Field label="Dipendenze strategiche">{m.dipendenze_strategiche}</Field>
         </div>
-      </div>
-      <div style={{marginTop:20,borderTop:`1px solid ${C.border}`,paddingTop:20}}>
-        <div style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',
-          textTransform:'uppercase',color:C.t3,marginBottom:2}}>
-          Value Chain del Settore
-        </div>
-        {fasi.length > 0 && <ValueChainDiagram fasi={fasi} />}
-        {testo && (
-          <div style={{fontSize:13,color:C.t2,lineHeight:1.8,marginTop:14,
-            whiteSpace:'pre-wrap'}}>{testo}</div>
-        )}
       </div>
     </Card>
   );
@@ -544,9 +488,10 @@ def vision_full_analysis(pdf_path: Path, client: OpenAI) -> dict:
             "(le slide ti vengono mostrate come immagini) e restituisci SOLO un JSON "
             "con la struttura esatta che segue. Tutto in italiano. "
             "Se un'informazione non è presente scrivi 'Non dichiarato nel deck'.\n"
-            "IMPORTANTE: per struttura_della_catena_del_valore ignora il deck, costruisci la catena "
-            "del settore in autonomia come array JSON: 4-6 fasi, per ognuna fase/cosa_scambia/player reali/"
-            "chi_cattura_margine/posizione_startup (true solo dove opera la startup).\n\n"
+            "IMPORTANTE: per struttura_della_catena_del_valore ignora il deck e costruisci "
+            "la catena del valore del settore in autonomia: almeno 4-6 fasi, player reali nominati "
+            "per ogni fase, flussi economici tra i nodi, dove si concentra il potere/margine. "
+            "Il deck serve solo per determinare posizionamento_nella_catena.\n\n"
             + PHASE2_PROMPT.split("Produci un'analisi approfondita")[1].split("{{")[0].strip()
             + "\n\n"
             + "{\n"
@@ -558,8 +503,7 @@ def vision_full_analysis(pdf_path: Path, client: OpenAI) -> dict:
             '  "team": {"fondatori":[{"nome":"...","ruolo":"...","background":"..."}],'
             '"valutazione_team":"..."},\n'
             '  "mercato": {"settore":"...","sottosettore":"...","dimensione_mercato":"...",'
-            '"tasso_di_crescita":"...","struttura_della_catena_del_valore":"testo analitico denso",'
-            '"fasi_visive":[{"fase":"nome breve","posizione_startup":false}],'
+            '"tasso_di_crescita":"...","struttura_della_catena_del_valore":"...",'
             '"posizionamento_nella_catena":"...","dipendenze_strategiche":"...","driver_di_mercato":"..."},\n'
             '  "competizione": {"player_globali":[{"nome":"...","descrizione":"..."}],'
             '"player_europei":[{"nome":"...","descrizione":"..."}],'
