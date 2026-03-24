@@ -71,6 +71,9 @@ Hai a disposizione:
 Produci un'analisi approfondita in JSON con la struttura esatta qui sotto.
 Non aggiungere testo fuori dal JSON. Tutto in italiano.
 
+REGOLE PER struttura_della_catena_del_valore:
+Ignora completamente il deck. Costruisci la catena del valore del settore in autonomia. Array di 4-6 oggetti, uno per fase. Ogni fase deve essere analitica e specifica: descrizione densa con dinamiche reali del settore, player nominati con ruolo/dimensione, ragionamento sul margine con cause strutturali. Vietato il generico: "gli operatori catturano margine grazie alla loro posizione" non è un'analisi. Scrivi come se stessi briefando un partner prima di una board meeting. posizione_startup:true solo per le fasi presidiate dalla startup.
+
 REGOLE PER domande_per_il_founder:
 Genera 7 domande partendo da ciò che questo specifico deck NON dice, dice in modo vago, o contraddice.
 Ogni domanda deve essere impossibile da riciclare su un altro deck: se funziona uguale togliendo il nome dell'azienda, è sbagliata e va riscritta.
@@ -112,7 +115,15 @@ Parti sempre da: cosa manca? cosa non torna? cosa è affermato ma non dimostrato
     "sottosettore": "Verticale o nicchia specifica",
     "dimensione_mercato": "TAM/SAM/SOM se dichiarati con fonte. Se non dichiarati, stima qualitativa motivata.",
     "tasso_di_crescita": "CAGR o trend se dichiarato o stimabile",
-    "struttura_della_catena_del_valore": "IGNORA COMPLETAMENTE QUELLO CHE DICE IL DECK. Costruisci in autonomia la catena del valore del settore usando la tua conoscenza di mercato. Questo deve essere il pezzo più analitico dell'intero report. Requisiti minimi: (a) almeno 4-6 fasi distinte della catena, (b) per ogni fase: nome della fase, cosa produce/abilita, chi cattura margine e perché, 3-5 player reali globali ed europei con nome esplicito, (c) descrivi i flussi tra le fasi — cosa si scambia (denaro, dati, audience, IP, infrastruttura), (d) identifica dove si concentra il potere nella catena (chi detta le condizioni agli altri), (e) segnala eventuali fasi in fase di commoditizzazione o disruption. Formato libero ma denso e specifico.",
+    "struttura_della_catena_del_valore": [
+      {{
+        "fase": "Nome preciso e specifico della fase (es. 'Originazione del credito' non 'Credito')",
+        "descrizione": "2-3 frasi dense: cosa produce/scambia questa fase, quale ruolo ha nell'ecosistema, come si è evoluta negli ultimi 5 anni, quali tensioni strutturali la caratterizzano oggi",
+        "player": ["Nome player (ruolo/dimensione)", "Nome player (ruolo/dimensione)", "Nome player (ruolo/dimensione)"],
+        "margine": "2-3 frasi: chi cattura margine qui e perché — è strutturale o temporaneo? Quali leve usano (dati proprietari, network effect, lock-in, regolazione)? Il margine si sta erodendo o consolidando?",
+        "posizione_startup": false
+      }}
+    ],
     "posizionamento_nella_catena": "Sulla base della catena del valore che hai costruito sopra in modo indipendente, posiziona con precisione questa azienda: in quale/i fase/i opera, da chi dipende per input (upstream), a chi serve o vende (downstream), se è un enabler B2B o serve il cliente finale, se presidia una sola fase o tenta di integrarsi verticalmente, dove cattura margine oggi vs dove potrebbe catturarne in futuro, e quali player della catena potrebbero disintermediarlo o replicarne la funzione.",
     "dipendenze_strategiche": "Da quali player/piattaforme/dati dipende? Qual è il rischio se quel player cambia le condizioni?",
     "driver_di_mercato": "Quali macro-trend o regolatori stanno creando il momento giusto per questa soluzione?"
@@ -327,8 +338,65 @@ function TeamSection() {
   );
 }
 
+function ValueChain({ fasi }) {
+  if (!fasi || !Array.isArray(fasi) || fasi.length === 0) return null;
+  return (
+    <div style={{overflowX:'auto',paddingBottom:8,paddingTop:20}}>
+      <div style={{display:'flex',alignItems:'stretch',gap:0,minWidth:'max-content'}}>
+        {fasi.map((f,i) => (
+          <React.Fragment key={i}>
+            <div style={{
+              position:'relative',
+              background: f.posizione_startup ? C.blueBg : C.surface,
+              border: `1.5px solid ${f.posizione_startup ? C.blue : C.border}`,
+              borderRadius:12, padding:'14px 16px',
+              minWidth:180, maxWidth:240,
+            }}>
+              {f.posizione_startup && (
+                <div style={{
+                  position:'absolute',top:-18,left:'50%',transform:'translateX(-50%)',
+                  background:C.blue,color:'white',borderRadius:99,
+                  padding:'2px 10px',fontSize:9,fontWeight:700,whiteSpace:'nowrap'
+                }}>★ qui</div>
+              )}
+              <div style={{
+                fontWeight:700,fontSize:13,marginBottom:6,
+                color: f.posizione_startup ? C.blue : C.t1
+              }}>{f.fase}</div>
+              {f.descrizione && (
+                <div style={{fontSize:11,color:C.t2,lineHeight:1.5,marginBottom:8}}>{f.descrizione}</div>
+              )}
+              {f.margine && (
+                <div style={{fontSize:10,color:C.t2,lineHeight:1.4,marginBottom:8,
+                  background:'rgba(0,0,0,.04)',borderRadius:6,padding:'5px 7px'}}>
+                  <span style={{fontWeight:700,color:C.t1}}>Margine: </span>{f.margine}
+                </div>
+              )}
+              <div style={{display:'flex',flexWrap:'wrap',gap:3}}>
+                {(f.player||[]).map((p,j) => (
+                  <span key={j} style={{
+                    background: f.posizione_startup ? 'rgba(59,130,246,.1)' : '#f4f4f5',
+                    color: f.posizione_startup ? C.blue : C.t3,
+                    borderRadius:4,padding:'2px 7px',fontSize:10,fontWeight:500
+                  }}>{p}</span>
+                ))}
+              </div>
+            </div>
+            {i < fasi.length-1 && (
+              <div style={{display:'flex',alignItems:'center',padding:'0 6px',
+                color:C.t3,fontSize:22,flexShrink:0}}>→</div>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function MarketSection() {
   const m = D.mercato||{};
+  const fasi = Array.isArray(m.struttura_della_catena_del_valore)
+    ? m.struttura_della_catena_del_valore : [];
   return (
     <Card id="mercato">
       <CardTitle>Mercato</CardTitle>
@@ -343,11 +411,19 @@ function MarketSection() {
           <Field label="Driver di mercato">{m.driver_di_mercato}</Field>
         </div>
         <div>
-          <Field label="Struttura catena del valore">{m.struttura_della_catena_del_valore}</Field>
           <Field label="Posizionamento nella catena">{m.posizionamento_nella_catena}</Field>
           <Field label="Dipendenze strategiche">{m.dipendenze_strategiche}</Field>
         </div>
       </div>
+      {fasi.length > 0 && (
+        <div style={{marginTop:20,borderTop:`1px solid ${C.border}`,paddingTop:20}}>
+          <div style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',
+            textTransform:'uppercase',color:C.t3,marginBottom:2}}>
+            Value Chain del Settore
+          </div>
+          <ValueChain fasi={fasi} />
+        </div>
+      )}
     </Card>
   );
 }
@@ -503,7 +579,7 @@ def vision_full_analysis(pdf_path: Path, client: OpenAI) -> dict:
             '  "team": {"fondatori":[{"nome":"...","ruolo":"...","background":"..."}],'
             '"valutazione_team":"..."},\n'
             '  "mercato": {"settore":"...","sottosettore":"...","dimensione_mercato":"...",'
-            '"tasso_di_crescita":"...","struttura_della_catena_del_valore":"...",'
+            '"tasso_di_crescita":"...","struttura_della_catena_del_valore":[{"fase":"...","descrizione":"...","player":["..."],"margine":"...","posizione_startup":false}],'
             '"posizionamento_nella_catena":"...","dipendenze_strategiche":"...","driver_di_mercato":"..."},\n'
             '  "competizione": {"player_globali":[{"nome":"...","descrizione":"..."}],'
             '"player_europei":[{"nome":"...","descrizione":"..."}],'
