@@ -105,8 +105,8 @@ Non aggiungere testo fuori dal JSON. Tutto in italiano.
     "sottosettore": "Verticale o nicchia specifica",
     "dimensione_mercato": "TAM/SAM/SOM se dichiarati con fonte. Se non dichiarati, stima qualitativa motivata.",
     "tasso_di_crescita": "CAGR o trend se dichiarato o stimabile",
-    "struttura_della_catena_del_valore": "Descrivi la catena del valore del settore identificando TUTTE le fasi e i tipi di attori in ogni fase. Esempio: 'Il mercato X è composto da: (1) Fornitori di dati grezzi [...], (2) Piattaforme di elaborazione [...], (3) Distributori [...], (4) Clienti finali [...]'",
-    "posizionamento_nella_catena": "In quale fase/i si inserisce l'azienda? Da chi riceve input (dati, flussi, clienti)? A chi vende? È un enabler (vende a player B2B della catena) o un operatore (serve il cliente finale)? Presidia una sola fase o più?",
+    "struttura_della_catena_del_valore": "IGNORA COMPLETAMENTE QUELLO CHE DICE IL DECK SU QUESTO. Usa la tua conoscenza del settore e le informazioni web per costruire in modo indipendente la catena del valore del mercato in cui opera l'azienda. Identifica TUTTE le fasi e i tipi di attori in ogni fase, con esempi di player reali. Formato: 'Il mercato [X] è strutturato in [N] fasi: (1) [Fase] — attori: [esempi reali]; (2) [Fase] — attori: [esempi reali]; ...'",
+    "posizionamento_nella_catena": "Sulla base della catena del valore che hai costruito in modo indipendente, determina dove si posiziona questa azienda. Da chi riceve input (dati, flussi, clienti, infrastruttura)? A chi vende o distribuisce? Presidia una sola fase o più? È un enabler (B2B verso altri player della catena) o un operatore (serve il cliente finale direttamente)? Indica eventuali tensioni o rischi di disintermediazione.",
     "dipendenze_strategiche": "Da quali player/piattaforme/dati dipende? Qual è il rischio se quel player cambia le condizioni?",
     "driver_di_mercato": "Quali macro-trend o regolatori stanno creando il momento giusto per questa soluzione?"
   }},
@@ -488,7 +488,10 @@ def vision_full_analysis(pdf_path: Path, client: OpenAI) -> dict:
             "Sei un partner VC con 15 anni di esperienza. Analizza questo pitch deck "
             "(le slide ti vengono mostrate come immagini) e restituisci SOLO un JSON "
             "con la struttura esatta che segue. Tutto in italiano. "
-            "Se un'informazione non è presente scrivi 'Non dichiarato nel deck'.\n\n"
+            "Se un'informazione non è presente scrivi 'Non dichiarato nel deck'.\n"
+            "IMPORTANTE: per struttura_della_catena_del_valore usa la tua conoscenza del settore, "
+            "NON quello che dice il deck. Costruisci la catena del valore in modo indipendente "
+            "con player reali per ogni fase. Il deck serve solo per posizionamento_nella_catena.\n\n"
             + PHASE2_PROMPT.split("Produci un'analisi approfondita")[1].split("{{")[0].strip()
             + "\n\n"
             + "{\n"
