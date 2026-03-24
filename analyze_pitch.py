@@ -500,17 +500,20 @@ def _extract_with_vision(pdf_path: Path, client: OpenAI) -> str:
 
 
 def extract_text_from_pdf(pdf_path: Path, client: OpenAI = None) -> str:
-    """Estrae testo dal PDF. Se pdfplumber non trova testo, usa GPT-4o Vision."""
+    """Estrae testo dal PDF. Se il contenuto è scarso, usa GPT-4o Vision."""
     pages = []
+    page_count = 0
     with pdfplumber.open(pdf_path) as pdf:
+        page_count = len(pdf.pages)
         for i, page in enumerate(pdf.pages):
             text = page.extract_text()
             if text and text.strip():
                 pages.append(f"[Slide {i+1}]\n{text.strip()}")
     text = "\n\n".join(pages)
 
-    # Se il testo è troppo scarso, prova con vision
-    if len(text.strip()) < 200 and client:
+    # Se meno di 100 caratteri per slide in media, il PDF è image-based → Vision
+    chars_per_page = len(text.strip()) / max(page_count, 1)
+    if chars_per_page < 100 and client:
         text = _extract_with_vision(pdf_path, client)
 
     return text
