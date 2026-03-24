@@ -71,6 +71,13 @@ Hai a disposizione:
 Produci un'analisi approfondita in JSON con la struttura esatta qui sotto.
 Non aggiungere testo fuori dal JSON. Tutto in italiano.
 
+REGOLE PER domande_per_il_founder:
+Genera 7 domande partendo da ciò che questo specifico deck NON dice, dice in modo vago, o contraddice.
+Ogni domanda deve essere impossibile da riciclare su un altro deck: se funziona uguale togliendo il nome dell'azienda, è sbagliata e va riscritta.
+Le domande devono essere ancorate a dettagli concreti di questo deck o di questo mercato specifico (cita cifre, affermazioni o scelte del founder).
+Non rispondibili con sì/no. Vietato: "Quali sono i vostri piani di crescita?", "Come pensate di differenziarvi?", "Quali sono i vostri KPI?".
+Parti sempre da: cosa manca? cosa non torna? cosa è affermato ma non dimostrato? cosa è specifico di questo settore che il founder non ha spiegato?
+
 {{
   "nome_azienda": "...",
   "tagline": "tagline ufficiale se presente, altrimenti null",
@@ -105,8 +112,8 @@ Non aggiungere testo fuori dal JSON. Tutto in italiano.
     "sottosettore": "Verticale o nicchia specifica",
     "dimensione_mercato": "TAM/SAM/SOM se dichiarati con fonte. Se non dichiarati, stima qualitativa motivata.",
     "tasso_di_crescita": "CAGR o trend se dichiarato o stimabile",
-    "struttura_della_catena_del_valore": "IGNORA COMPLETAMENTE QUELLO CHE DICE IL DECK SU QUESTO. Usa la tua conoscenza del settore e le informazioni web per costruire in modo indipendente la catena del valore del mercato in cui opera l'azienda. Identifica TUTTE le fasi e i tipi di attori in ogni fase, con esempi di player reali. Formato: 'Il mercato [X] è strutturato in [N] fasi: (1) [Fase] — attori: [esempi reali]; (2) [Fase] — attori: [esempi reali]; ...'",
-    "posizionamento_nella_catena": "Sulla base della catena del valore che hai costruito in modo indipendente, determina dove si posiziona questa azienda. Da chi riceve input (dati, flussi, clienti, infrastruttura)? A chi vende o distribuisce? Presidia una sola fase o più? È un enabler (B2B verso altri player della catena) o un operatore (serve il cliente finale direttamente)? Indica eventuali tensioni o rischi di disintermediazione.",
+    "struttura_della_catena_del_valore": "IGNORA COMPLETAMENTE QUELLO CHE DICE IL DECK. Costruisci in autonomia la catena del valore del settore usando la tua conoscenza di mercato. Questo deve essere il pezzo più analitico dell'intero report. Requisiti minimi: (a) almeno 4-6 fasi distinte della catena, (b) per ogni fase: nome della fase, cosa produce/abilita, chi cattura margine e perché, 3-5 player reali globali ed europei con nome esplicito, (c) descrivi i flussi tra le fasi — cosa si scambia (denaro, dati, audience, IP, infrastruttura), (d) identifica dove si concentra il potere nella catena (chi detta le condizioni agli altri), (e) segnala eventuali fasi in fase di commoditizzazione o disruption. Formato libero ma denso e specifico.",
+    "posizionamento_nella_catena": "Sulla base della catena del valore che hai costruito sopra in modo indipendente, posiziona con precisione questa azienda: in quale/i fase/i opera, da chi dipende per input (upstream), a chi serve o vende (downstream), se è un enabler B2B o serve il cliente finale, se presidia una sola fase o tenta di integrarsi verticalmente, dove cattura margine oggi vs dove potrebbe catturarne in futuro, e quali player della catena potrebbero disintermediarlo o replicarne la funzione.",
     "dipendenze_strategiche": "Da quali player/piattaforme/dati dipende? Qual è il rischio se quel player cambia le condizioni?",
     "driver_di_mercato": "Quali macro-trend o regolatori stanno creando il momento giusto per questa soluzione?"
   }},
@@ -122,15 +129,7 @@ Non aggiungere testo fuori dal JSON. Tutto in italiano.
     "valutazione_critica_del_vantaggio": "Il vantaggio è reale e difendibile? È temporaneo o strutturale? Quanto è difficile da replicare per un player con più risorse?"
   }},
 
-  "domande_per_il_founder": [
-    "Domanda 1: [su unit economics o metriche chiave - specifica, non rispondibile con sì/no]",
-    "Domanda 2: [su go-to-market e acquisizione clienti - cosa è già stato testato?]",
-    "Domanda 3: [su un punto critico o contraddizione emersa dal deck]",
-    "Domanda 4: [sul moat: perché tra 3 anni un player grande non fa la stessa cosa?]",
-    "Domanda 5: [sul team: il gap più evidente o la scelta più rischiosa]",
-    "Domanda 6: [sulla struttura del mercato o le dipendenze identificate]",
-    "Domanda 7: [sulla visione a lungo termine: dove vuole arrivare e perché è il momento giusto]"
-  ],
+  "domande_per_il_founder": ["domanda 1", "domanda 2", "domanda 3", "domanda 4", "domanda 5", "domanda 6", "domanda 7"],
 
   "punti_di_attenzione": [
     {{
@@ -489,9 +488,10 @@ def vision_full_analysis(pdf_path: Path, client: OpenAI) -> dict:
             "(le slide ti vengono mostrate come immagini) e restituisci SOLO un JSON "
             "con la struttura esatta che segue. Tutto in italiano. "
             "Se un'informazione non è presente scrivi 'Non dichiarato nel deck'.\n"
-            "IMPORTANTE: per struttura_della_catena_del_valore usa la tua conoscenza del settore, "
-            "NON quello che dice il deck. Costruisci la catena del valore in modo indipendente "
-            "con player reali per ogni fase. Il deck serve solo per posizionamento_nella_catena.\n\n"
+            "IMPORTANTE: per struttura_della_catena_del_valore ignora il deck e costruisci "
+            "la catena del valore del settore in autonomia: almeno 4-6 fasi, player reali nominati "
+            "per ogni fase, flussi economici tra i nodi, dove si concentra il potere/margine. "
+            "Il deck serve solo per determinare posizionamento_nella_catena.\n\n"
             + PHASE2_PROMPT.split("Produci un'analisi approfondita")[1].split("{{")[0].strip()
             + "\n\n"
             + "{\n"
