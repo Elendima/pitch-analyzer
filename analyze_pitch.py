@@ -72,7 +72,7 @@ Produci un'analisi approfondita in JSON con la struttura esatta qui sotto.
 Non aggiungere testo fuori dal JSON. Tutto in italiano.
 
 REGOLE PER struttura_della_catena_del_valore:
-Ignora completamente il deck. Costruisci la catena del valore del settore in autonomia. Array di 4-6 oggetti, uno per fase. Ogni fase deve essere analitica e specifica: descrizione densa con dinamiche reali del settore, player nominati con ruolo/dimensione, ragionamento sul margine con cause strutturali. Vietato il generico: "gli operatori catturano margine grazie alla loro posizione" non è un'analisi. Scrivi come se stessi briefando un partner prima di una board meeting. posizione_startup:true solo per le fasi presidiate dalla startup.
+Ignora completamente il deck. Costruisci la catena del valore del MERCATO FINALE che la startup serve (stesso settore del campo "settore" — non la tecnologia usata). Array di 4-6 oggetti, uno per fase. Ogni fase deve essere analitica e specifica: descrizione densa con dinamiche reali del settore, player nominati con ruolo/dimensione, ragionamento sul margine con cause strutturali. Vietato il generico: "gli operatori catturano margine grazie alla loro posizione" non è un'analisi. Scrivi come se stessi briefando un partner prima di una board meeting. posizione_startup:true solo per le fasi presidiate dalla startup.
 
 REGOLE PER domande_per_il_founder:
 Genera 7 domande partendo da ciò che questo specifico deck NON dice, dice in modo vago, o contraddice.
@@ -111,8 +111,8 @@ Parti sempre da: cosa manca? cosa non torna? cosa è affermato ma non dimostrato
   }},
 
   "mercato": {{
-    "settore": "Settore principale",
-    "sottosettore": "Verticale o nicchia specifica",
+    "settore": "Settore del MERCATO FINALE che la startup serve (es. chi sono i clienti paganti). NON la tecnologia usata internamente. Una startup che usa AI per vendere a produttori di robot è in 'Robotica industriale', non in 'Intelligenza artificiale'.",
+    "sottosettore": "Verticale o nicchia specifica all'interno del settore finale",
     "dimensione_mercato": "TAM/SAM/SOM se dichiarati con fonte. Se non dichiarati, stima qualitativa motivata.",
     "tasso_di_crescita": "CAGR o trend se dichiarato o stimabile",
     "struttura_della_catena_del_valore": [
