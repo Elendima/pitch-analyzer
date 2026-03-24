@@ -17,11 +17,16 @@ import webbrowser
 from datetime import datetime
 from pathlib import Path
 
+import base64
+from io import BytesIO
+
 import pdfplumber
+import pypdfium2 as pdfium
 import requests
 from bs4 import BeautifulSoup
 from duckduckgo_search import DDGS
 from openai import OpenAI
+from PIL import Image
 
 # ---------------------------------------------------------------------------
 # Prompt
@@ -456,14 +461,59 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 # PDF
 # ---------------------------------------------------------------------------
 
-def extract_text_from_pdf(pdf_path: Path) -> str:
+def _pdf_to_base64_images(pdf_path: Path, max_pages: int = 25) -> list[str]:
+    """Converte le pagine di un PDF in immagini JPEG base64."""
+    doc = pdfium.PdfDocument(str(pdf_path))
+    images = []
+    for i in range(min(len(doc), max_pages)):
+        page = doc[i]
+        bitmap = page.render(scale=2.0)
+        pil_img = bitmap.to_pil().convert("RGB")
+        buf = BytesIO()
+        pil_img.save(buf, format="JPEG", quality=85)
+        images.append(base64.b64encode(buf.getvalue()).decode())
+    return images
+
+
+def _extract_with_vision(pdf_path: Path, client: OpenAI) -> str:
+    """Fallback: usa GPT-4o Vision per leggere PDF scansionati o image-based."""
+    print("  → PDF senza testo, uso GPT-4o Vision per leggere le slide...")
+    images = _pdf_to_base64_images(pdf_path)
+    if not images:
+        return ""
+
+    content = [{"type": "text", "text": (
+        "Questo è un pitch deck. Analizza ogni slide e trascrivi tutto il testo visibile "
+        "mantenendo la struttura (titoli, bullet points, numeri). "
+        "Separa ogni slide con '\\n\\n[Slide N]\\n' dove N è il numero della slide."
+    )}]
+    for i, b64 in enumerate(images):
+        content.append({"type": "image_url",
+                         "image_url": {"url": f"data:image/jpeg;base64,{b64}", "detail": "high"}})
+
+    resp = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": content}],
+        max_tokens=4000,
+    )
+    return resp.choices[0].message.content
+
+
+def extract_text_from_pdf(pdf_path: Path, client: OpenAI = None) -> str:
+    """Estrae testo dal PDF. Se pdfplumber non trova testo, usa GPT-4o Vision."""
     pages = []
     with pdfplumber.open(pdf_path) as pdf:
         for i, page in enumerate(pdf.pages):
             text = page.extract_text()
             if text and text.strip():
                 pages.append(f"[Slide {i+1}]\n{text.strip()}")
-    return "\n\n".join(pages)
+    text = "\n\n".join(pages)
+
+    # Se il testo è troppo scarso, prova con vision
+    if len(text.strip()) < 200 and client:
+        text = _extract_with_vision(pdf_path, client)
+
+    return text
 
 # ---------------------------------------------------------------------------
 # Web research
@@ -578,15 +628,14 @@ def main():
         pdf_path.parent / (pdf_path.stem + "_analisi.html")
 
     print(f"Carico PDF: {pdf_path.name} ({pdf_path.stat().st_size / 1024:.0f} KB)")
-    pdf_text = extract_text_from_pdf(pdf_path)
+    client = OpenAI()
+    pdf_text = extract_text_from_pdf(pdf_path, client)
 
     if not pdf_text.strip():
-        print("Errore: nessun testo estratto. Il PDF potrebbe essere composto solo da immagini.", file=sys.stderr)
+        print("Errore: nessun testo estratto dal PDF.", file=sys.stderr)
         sys.exit(1)
 
-    print(f"  → {len(pdf_text)} caratteri estratti da {pdf_text.count('[Slide')} slide")
-
-    client = OpenAI()
+    print(f"  → {len(pdf_text)} caratteri estratti")
 
     print("Estraggo informazioni base...")
     meta = phase1_extract(client, pdf_text)

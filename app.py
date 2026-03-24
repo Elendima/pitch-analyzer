@@ -253,11 +253,10 @@ def analyze():
         tmp_path = Path(tmp.name)
 
     try:
-        pdf_text = extract_text_from_pdf(tmp_path)
-        if not pdf_text.strip():
-            return jsonify({"error": "Nessun testo estratto dal PDF (potrebbe essere un PDF scansionato)"}), 400
-
         client = OpenAI()
+        pdf_text = extract_text_from_pdf(tmp_path, client)
+        if not pdf_text.strip():
+            return jsonify({"error": "Nessun testo estratto dal PDF."}), 400
         meta = phase1_extract(client, pdf_text)
         nome = meta.get("nome_azienda", "Startup")
         sito = meta.get("sito_web") or ""
@@ -290,9 +289,9 @@ if __name__ == "__main__":
 
     print("=" * 50)
     print("  Pitch Analyzer")
-    print("  Apri: http://localhost:5000")
+    print("  Apri: http://127.0.0.1:5000")
     print("  Premi Ctrl+C per fermare")
     print("=" * 50)
 
-    threading.Timer(1.2, lambda: webbrowser.open("http://localhost:5000")).start()
-    app.run(port=5000, debug=False)
+    threading.Timer(1.2, lambda: webbrowser.open("http://127.0.0.1:5000")).start()
+    app.run(host="127.0.0.1", port=5000, debug=False)
