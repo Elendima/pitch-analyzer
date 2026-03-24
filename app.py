@@ -17,6 +17,8 @@ from flask import Flask, jsonify, render_template_string, request, send_from_dir
 # Import del core analyzer
 from analyze_pitch import (
     extract_text_from_pdf,
+    is_image_based,
+    vision_full_analysis,
     phase1_extract,
     phase2_analyze,
     render_html,
@@ -254,18 +256,22 @@ def analyze():
 
     try:
         client = OpenAI()
-        pdf_text = extract_text_from_pdf(tmp_path, client)
-        if not pdf_text.strip():
-            return jsonify({"error": "Nessun testo estratto dal PDF."}), 400
-        meta = phase1_extract(client, pdf_text)
-        nome = meta.get("nome_azienda", "Startup")
-        sito = meta.get("sito_web") or ""
-        settore = meta.get("settore", "")
+        pdf_text, page_count = extract_text_from_pdf(tmp_path)
 
-        web_ctx = web_research(nome, sito, settore)
-        web_used = bool(web_ctx and "Nessuna" not in web_ctx)
-
-        data = phase2_analyze(client, nome, pdf_text, web_ctx)
+        web_used = False
+        if is_image_based(pdf_text, page_count):
+            data = vision_full_analysis(tmp_path, client)
+            nome = data.get("nome_azienda", "Startup")
+        else:
+            if not pdf_text.strip():
+                return jsonify({"error": "Nessun testo estratto dal PDF."}), 400
+            meta = phase1_extract(client, pdf_text)
+            nome = meta.get("nome_azienda", "Startup")
+            sito = meta.get("sito_web") or ""
+            settore = meta.get("settore", "")
+            web_ctx = web_research(nome, sito, settore)
+            web_used = bool(web_ctx and "Nessuna" not in web_ctx)
+            data = phase2_analyze(client, nome, pdf_text, web_ctx)
 
         html = render_html(data, pdf_file.filename, web_used)
         out_name = Path(pdf_file.filename).stem + "_analisi.html"

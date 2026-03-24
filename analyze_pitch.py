@@ -475,32 +475,63 @@ def _pdf_to_base64_images(pdf_path: Path, max_pages: int = 25) -> list[str]:
     return images
 
 
-def _extract_with_vision(pdf_path: Path, client: OpenAI) -> str:
-    """Fallback: usa GPT-4o Vision per leggere PDF scansionati o image-based."""
-    print("  → PDF senza testo, uso GPT-4o Vision per leggere le slide...")
+def vision_full_analysis(pdf_path: Path, client: OpenAI) -> dict:
+    """Analisi completa via Vision per PDF image-based: manda le slide direttamente a GPT-4o."""
+    print("  → PDF image-based, analisi diretta con GPT-4o Vision...")
     images = _pdf_to_base64_images(pdf_path)
     if not images:
-        return ""
+        return {}
 
-    content = [{"type": "text", "text": (
-        "Questo è un pitch deck. Analizza ogni slide e trascrivi tutto il testo visibile "
-        "mantenendo la struttura (titoli, bullet points, numeri). "
-        "Separa ogni slide con '\\n\\n[Slide N]\\n' dove N è il numero della slide."
-    )}]
-    for i, b64 in enumerate(images):
-        content.append({"type": "image_url",
-                         "image_url": {"url": f"data:image/jpeg;base64,{b64}", "detail": "high"}})
+    content: list = [{
+        "type": "text",
+        "text": (
+            "Sei un partner VC con 15 anni di esperienza. Analizza questo pitch deck "
+            "(le slide ti vengono mostrate come immagini) e restituisci SOLO un JSON "
+            "con la struttura esatta che segue. Tutto in italiano. "
+            "Se un'informazione non è presente scrivi 'Non dichiarato nel deck'.\n\n"
+            + PHASE2_PROMPT.split("Produci un'analisi approfondita")[1].split("{{")[0].strip()
+            + "\n\n"
+            + "{\n"
+            '  "nome_azienda": "...",\n'
+            '  "tagline": "...",\n'
+            '  "business": {"problema":"...","soluzione":"...","modello_di_business":"..."},\n'
+            '  "prodotto_tecnologia": {"descrizione":"...","caratteristiche_chiave":["..."],'
+            '"stack_tecnologico":"...","differenziatore_tecnologico":"...","stadio_di_sviluppo":"..."},\n'
+            '  "team": {"fondatori":[{"nome":"...","ruolo":"...","background":"..."}],'
+            '"valutazione_team":"..."},\n'
+            '  "mercato": {"settore":"...","sottosettore":"...","dimensione_mercato":"...",'
+            '"tasso_di_crescita":"...","struttura_della_catena_del_valore":"...",'
+            '"posizionamento_nella_catena":"...","dipendenze_strategiche":"...","driver_di_mercato":"..."},\n'
+            '  "competizione": {"player_globali":[{"nome":"...","descrizione":"..."}],'
+            '"player_europei":[{"nome":"...","descrizione":"..."}],'
+            '"vantaggio_competitivo_dichiarato":"...","valutazione_critica_del_vantaggio":"..."},\n'
+            '  "domande_per_il_founder": ["...","...","...","...","...","...","..."],\n'
+            '  "punti_di_attenzione": [{"area":"...","gravità":"Alta/Media/Bassa","descrizione":"..."}],\n'
+            '  "sintesi": "..."\n'
+            "}"
+        )
+    }]
+    for b64 in images:
+        content.append({
+            "type": "image_url",
+            "image_url": {"url": f"data:image/jpeg;base64,{b64}", "detail": "high"}
+        })
 
     resp = client.chat.completions.create(
         model="gpt-4o",
-        messages=[{"role": "user", "content": content}],
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": content},
+        ],
+        response_format={"type": "json_object"},
         max_tokens=4000,
+        temperature=0.2,
     )
-    return resp.choices[0].message.content
+    return json.loads(resp.choices[0].message.content)
 
 
-def extract_text_from_pdf(pdf_path: Path, client: OpenAI = None) -> str:
-    """Estrae testo dal PDF. Se il contenuto è scarso, usa GPT-4o Vision."""
+def extract_text_from_pdf(pdf_path: Path) -> tuple[str, int]:
+    """Estrae testo dal PDF. Restituisce (testo, numero_pagine)."""
     pages = []
     page_count = 0
     with pdfplumber.open(pdf_path) as pdf:
@@ -509,14 +540,12 @@ def extract_text_from_pdf(pdf_path: Path, client: OpenAI = None) -> str:
             text = page.extract_text()
             if text and text.strip():
                 pages.append(f"[Slide {i+1}]\n{text.strip()}")
-    text = "\n\n".join(pages)
+    return "\n\n".join(pages), page_count
 
-    # Se meno di 100 caratteri per slide in media, il PDF è image-based → Vision
-    chars_per_page = len(text.strip()) / max(page_count, 1)
-    if chars_per_page < 100 and client:
-        text = _extract_with_vision(pdf_path, client)
 
-    return text
+def is_image_based(text: str, page_count: int) -> bool:
+    """True se il PDF ha meno di 100 caratteri per pagina in media."""
+    return (len(text.strip()) / max(page_count, 1)) < 100
 
 # ---------------------------------------------------------------------------
 # Web research
@@ -632,31 +661,33 @@ def main():
 
     print(f"Carico PDF: {pdf_path.name} ({pdf_path.stat().st_size / 1024:.0f} KB)")
     client = OpenAI()
-    pdf_text = extract_text_from_pdf(pdf_path, client)
-
-    if not pdf_text.strip():
-        print("Errore: nessun testo estratto dal PDF.", file=sys.stderr)
-        sys.exit(1)
-
-    print(f"  → {len(pdf_text)} caratteri estratti")
-
-    print("Estraggo informazioni base...")
-    meta = phase1_extract(client, pdf_text)
-    nome = meta.get("nome_azienda", "Startup")
-    sito = meta.get("sito_web") or ""
-    settore = meta.get("settore", "")
-    print(f"  → Azienda: {nome} | Settore: {settore}")
+    pdf_text, page_count = extract_text_from_pdf(pdf_path)
 
     web_ctx = ""
     web_used = False
-    if not args.no_web:
-        print("Ricerca informazioni sul web...")
-        web_ctx = web_research(nome, sito, settore)
-        web_used = bool(web_ctx and "Nessuna" not in web_ctx)
 
-    print("Analisi approfondita con GPT-4o...")
-    data = phase2_analyze(client, nome, pdf_text, web_ctx)
-    print("  → Analisi completata.")
+    if is_image_based(pdf_text, page_count):
+        print("  → PDF image-based, analisi diretta con GPT-4o Vision...")
+        data = vision_full_analysis(pdf_path, client)
+        nome = data.get("nome_azienda", "Startup")
+    else:
+        print(f"  → {len(pdf_text)} caratteri estratti")
+        print("Estraggo informazioni base...")
+        meta = phase1_extract(client, pdf_text)
+        nome = meta.get("nome_azienda", "Startup")
+        sito = meta.get("sito_web") or ""
+        settore = meta.get("settore", "")
+        print(f"  → Azienda: {nome} | Settore: {settore}")
+
+        if not args.no_web:
+            print("Ricerca informazioni sul web...")
+            web_ctx = web_research(nome, sito, settore)
+            web_used = bool(web_ctx and "Nessuna" not in web_ctx)
+
+        print("Analisi approfondita con GPT-4o...")
+        data = phase2_analyze(client, nome, pdf_text, web_ctx)
+
+    print(f"  → Analisi completata: {nome}")
 
     html = render_html(data, pdf_path.name, web_used)
     output_path.write_text(html, encoding="utf-8")
