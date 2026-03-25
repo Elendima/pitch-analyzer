@@ -72,18 +72,18 @@ Produci un'analisi approfondita in JSON con la struttura esatta qui sotto.
 Non aggiungere testo fuori dal JSON. Tutto in italiano.
 
 REGOLE PER struttura_della_catena_del_valore:
-Ignora completamente il deck. Costruisci la struttura dell'ecosistema del MERCATO FINALE che la startup serve.
+Ignora completamente il deck. Costruisci lo stack funzionale dell'ecosistema del MERCATO FINALE.
 
-FRAMEWORK: per mercati digitali/software/piattaforma NON usare supply chain lineare (fornitore→produttore→distributore→cliente). Ragiona per STACK FUNZIONALE: quali sono i layer dell'ecosistema? Chi controlla ogni layer? Cosa fluisce tra i layer (dati, API access, distribuzione, denaro, attenzione)?
+FRAMEWORK: ragiona per layer (non supply chain lineare). Identifica 5-6 layer dall'infrastruttura/accesso upstream fino all'esecuzione downstream. Ogni campo deve essere BREVE e DENSO — niente narrativa, solo sostanza.
 
-Per ogni layer/fase produci:
-- "fase": nome tecnico preciso (es. "Data & Access Layer" non "Dati")
-- "descrizione": 3-4 frasi dense su cosa controlla questo layer, perché è strutturalmente rilevante, come si è evoluto negli ultimi 3 anni, quali tensioni lo caratterizzano oggi (commoditizzazione, consolidamento, disruption in corso)
-- "player": 4-6 player nominati con annotazione breve sul loro ruolo specifico in questo layer
-- "margine": 2-3 frasi su chi cattura margine, con quale leva specifica (dati proprietari non replicabili, network effect, accesso esclusivo, lock-in switching cost, scala), se il margine si sta erodendo o consolidando e perché
-- "posizione_startup": true solo se la startup opera in questo layer
+Per ogni layer:
+- "fase": nome tecnico preciso (es. "Data & Access Layer", "Visibility Analytics Layer")
+- "descrizione": MAX 2 frasi. Cosa controlla questo layer e quale tensione strutturale lo caratterizza oggi.
+- "player": 4-5 nomi reali con ruolo in parentesi (es. "OpenAI (LLM provider)", "Common Crawl (training data)")
+- "margine": MAX 1 frase. Chi cattura margine e con quale leva specifica (dati proprietari / network effect / lock-in / accesso esclusivo).
+- "posizione_startup": true solo se la startup opera qui.
 
-Vietato il generico. "Gli operatori catturano margine grazie alla loro posizione" non è un'analisi — spiega la leva strutturale specifica. Scrivi come un analista McKinsey che briefa un Partner VC prima di un primo meeting.
+PRIORITÀ: completezza dei layer > lunghezza delle descrizioni. Meglio 6 layer corti che 2 layer lunghi.
 
 REGOLE PER domande_per_il_founder:
 Genera 7 domande partendo da ciò che questo specifico deck NON dice, dice in modo vago, o contraddice.
