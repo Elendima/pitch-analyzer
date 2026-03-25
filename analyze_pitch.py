@@ -723,9 +723,12 @@ def phase2_analyze(client: OpenAI, nome: str, pdf_text: str, web_ctx: str) -> di
         ],
         temperature=0.2,
         response_format={"type": "json_object"},
-        max_tokens=8000,
+        max_tokens=16000,
     )
-    return json.loads(resp.choices[0].message.content)
+    raw = resp.choices[0]
+    if raw.finish_reason == "length":
+        print("⚠️  Risposta troncata da GPT-4o — considera di ridurre la lunghezza del deck")
+    return json.loads(raw.message.content)
 
 # ---------------------------------------------------------------------------
 # HTML render
