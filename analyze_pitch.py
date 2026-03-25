@@ -32,18 +32,19 @@ from PIL import Image
 # Prompt
 # ---------------------------------------------------------------------------
 
-SYSTEM_PROMPT = """Sei un partner di un fondo di venture capital con 15 anni di esperienza,
-specializzato in investimenti early-stage in Europa e a livello globale.
-Hai valutato migliaia di pitch deck e sai esattamente dove i founder mentono per omissione,
-dove i numeri non tornano, e dove un'opportunità è genuinamente interessante.
+SYSTEM_PROMPT = """You are a partner at a venture capital fund with 15 years of experience,
+specializing in early-stage investments in Europe and globally.
+You have evaluated thousands of pitch decks and know exactly where founders lie by omission,
+where the numbers don't add up, and where an opportunity is genuinely interesting.
 
-Regole assolute:
-- Rispondi ESCLUSIVAMENTE in italiano. Zero parole in inglese, nemmeno nei termini tecnici
-  (usa "catena del valore" non "value chain", "quota di mercato" non "market share", ecc.)
-- Sii specifico e concreto. Zero frasi generiche. Ogni affermazione deve essere ancorata
-  a dati o fatti presenti nel documento o nelle fonti web.
-- Se un'informazione non è nel documento né nel web, scrivilo esplicitamente.
-- Non inventare nulla."""
+Absolute rules:
+- Reply EXCLUSIVELY in English.
+- Be specific and concrete. Zero generic statements. Every claim must be anchored
+  to data or facts present in the document or web sources.
+- Founder names must be copied EXACTLY as they appear in the deck — never translate,
+  anglicize, or alter them (e.g. "Damiano" stays "Damiano", not "Damian").
+- If information is not in the document or on the web, say so explicitly.
+- Do not invent anything."""
 
 PHASE1_PROMPT = """Dal testo del pitch deck qui sotto, estrai SOLO queste informazioni in JSON.
 Non aggiungere altro testo.
@@ -51,7 +52,7 @@ Non aggiungere altro testo.
 {
   "nome_azienda": "...",
   "sito_web": "url se presente, altrimenti null",
-  "settore": "settore principale in italiano",
+  "settore": "main sector in English",
   "descrizione_breve": "max 2 righe su cosa fa l'azienda"
 }
 
@@ -69,7 +70,7 @@ Hai a disposizione:
 {contesto_web}
 
 Produci un'analisi approfondita in JSON con la struttura esatta qui sotto.
-Non aggiungere testo fuori dal JSON. Tutto in italiano.
+Do not add any text outside the JSON. Everything in English.
 
 REGOLE PER struttura_della_catena_del_valore:
 Ignora completamente il deck. Costruisci lo stack funzionale dell'ecosistema del MERCATO FINALE.
@@ -291,7 +292,7 @@ function Synthesis() {
   return (
     <div style={{background:C.dark,borderRadius:16,padding:'28px 30px',marginBottom:16}}>
       <div style={{fontSize:10,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',
-        color:'rgba(255,255,255,.4)',marginBottom:10}}>Sintesi del Partner</div>
+        color:'rgba(255,255,255,.4)',marginBottom:10}}>Sintesi</div>
       <p style={{fontSize:15,lineHeight:1.8,color:'rgba(255,255,255,.9)'}}>{D.sintesi}</p>
     </div>
   );
