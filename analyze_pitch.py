@@ -46,87 +46,90 @@ Absolute rules:
 - If information is not in the document or on the web, say so explicitly.
 - Do not invent anything."""
 
-PHASE1_PROMPT = """Dal testo del pitch deck qui sotto, estrai SOLO queste informazioni in JSON.
-Non aggiungere altro testo.
+PHASE1_PROMPT = """From the pitch deck text below, extract ONLY these fields as JSON.
+No other text.
 
 {
   "nome_azienda": "...",
-  "sito_web": "url se presente, altrimenti null",
+  "sito_web": "url if present, otherwise null",
   "settore": "main sector in English",
-  "descrizione_breve": "max 2 righe su cosa fa l'azienda"
+  "descrizione_breve": "max 2 lines on what the company does"
 }
 
-Testo:
+Text:
 """
 
-PHASE2_PROMPT = """Sei un analista VC che ha appena letto il pitch deck di {nome_azienda}
-e ha trovato informazioni aggiuntive sul web.
+PHASE2_PROMPT = """You are a VC analyst who has just read the pitch deck of {nome_azienda}
+and found additional information on the web.
 
-Hai a disposizione:
-1. TESTO DEL PITCH DECK:
+You have access to:
+1. PITCH DECK TEXT:
 {testo_deck}
 
-2. INFORMAZIONI DAL WEB:
+2. WEB RESEARCH (use this to enrich and verify claims in the deck — especially for problem framing, market context, and competitive landscape):
 {contesto_web}
 
-Produci un'analisi approfondita in JSON con la struttura esatta qui sotto.
+Produce a deep analysis as JSON with the exact structure below.
 Do not add any text outside the JSON. Everything in English.
 
-REGOLE PER struttura_della_catena_del_valore:
-Ignora completamente il deck. Costruisci lo stack funzionale dell'ecosistema del MERCATO FINALE.
+IMPORTANT: For "problema" and "soluzione", do NOT just summarize what the deck says.
+Use the web research to contextualize the problem: how large is it? What evidence exists beyond the founder's claims? What have others written about it? Make the analysis independent and well-grounded.
 
-FRAMEWORK: ragiona per layer (non supply chain lineare). Identifica 5-6 layer dall'infrastruttura/accesso upstream fino all'esecuzione downstream. Ogni campo deve essere BREVE e DENSO — niente narrativa, solo sostanza.
+RULES FOR struttura_della_catena_del_valore:
+Ignore the deck entirely. Build the functional stack of the END MARKET ecosystem.
 
-Per ogni layer:
-- "fase": nome tecnico preciso (es. "Data & Access Layer", "Visibility Analytics Layer")
-- "descrizione": MAX 2 frasi. Cosa controlla questo layer e quale tensione strutturale lo caratterizza oggi.
-- "player": 4-5 nomi reali con ruolo in parentesi (es. "OpenAI (LLM provider)", "Common Crawl (training data)")
-- "margine": MAX 1 frase. Chi cattura margine e con quale leva specifica (dati proprietari / network effect / lock-in / accesso esclusivo).
-- "posizione_startup": true solo se la startup opera qui.
+FRAMEWORK: think in layers (not a linear supply chain). Identify 5-6 layers from upstream infrastructure/access down to execution. Each field must be SHORT and DENSE — no narrative, only substance.
 
-PRIORITÀ: completezza dei layer > lunghezza delle descrizioni. Meglio 6 layer corti che 2 layer lunghi.
+For each layer:
+- "fase": precise technical name (e.g. "Data & Access Layer", "Visibility Analytics Layer")
+- "descrizione": MAX 2 sentences. What this layer controls and what structural tension characterizes it today.
+- "player": 4-5 real names with role in parentheses (e.g. "OpenAI (LLM provider)", "Common Crawl (training data)")
+- "margine": MAX 1 sentence. Who captures margin and with which specific lever (proprietary data / network effect / lock-in / exclusive access).
+- "posizione_startup": true only if the startup operates here.
 
-REGOLE PER domande_per_il_founder:
-Genera 7 domande partendo da ciò che questo specifico deck NON dice, dice in modo vago, o contraddice.
-Ogni domanda deve essere impossibile da riciclare su un altro deck: se funziona uguale togliendo il nome dell'azienda, è sbagliata e va riscritta.
-Le domande devono essere ancorate a dettagli concreti di questo deck o di questo mercato specifico (cita cifre, affermazioni o scelte del founder).
-Non rispondibili con sì/no. Vietato: "Quali sono i vostri piani di crescita?", "Come pensate di differenziarvi?", "Quali sono i vostri KPI?".
-Parti sempre da: cosa manca? cosa non torna? cosa è affermato ma non dimostrato? cosa è specifico di questo settore che il founder non ha spiegato?
+PRIORITY: completeness of layers > length of descriptions. Better 6 short layers than 2 long ones.
+
+RULES FOR domande_per_il_founder:
+Generate 7 questions starting from what this specific deck does NOT say, says vaguely, or contradicts.
+Each question must be impossible to recycle on another deck: if it works the same without the company name, it is wrong and must be rewritten.
+Questions must be anchored to concrete details from this deck or this specific market (cite figures, claims or founder choices).
+Not answerable with yes/no. Forbidden: "What are your growth plans?", "How do you plan to differentiate?", "What are your KPIs?".
+Always start from: what is missing? what doesn't add up? what is claimed but not demonstrated? what is specific to this sector that the founder hasn't explained?
 
 {{
   "nome_azienda": "...",
   "tagline": "tagline ufficiale se presente, altrimenti null",
 
   "business": {{
-    "problema": "Descrizione precisa del problema. Chi lo sente? Con quale intensità? Quali sono le soluzioni esistenti e perché non bastano?",
-    "soluzione": "Come risolve il problema in modo specifico. Qual è il meccanismo chiave?",
-    "modello_di_business": "Come genera ricavi. Struttura dei prezzi se nota. Natura dei ricavi (ricorrenti/transazionali). Chi paga e chi usa il prodotto (se diversi)."
+    "problema": "Precise problem description grounded in both deck and web research. Who feels it? How intensely? What existing solutions exist and why do they fall short? Include external evidence where available.",
+    "soluzione": "How it solves the problem specifically. What is the core mechanism? How does it differ from what already exists?",
+    "modello_di_business": "How it generates revenue. Pricing structure if known. Revenue nature (recurring/transactional). Who pays vs who uses the product (if different)."
   }},
 
   "prodotto_tecnologia": {{
-    "descrizione": "Descrizione funzionale del prodotto. Cosa fa concretamente un utente con questo strumento?",
-    "caratteristiche_chiave": ["caratteristica 1", "caratteristica 2", "..."],
-    "stack_tecnologico": "Tecnologie usate se menzionate. Se non dichiarate, indica 'Non dichiarato nel deck'.",
-    "differenziatore_tecnologico": "C'è un vero moat tecnologico? Brevetti, dati proprietari, algoritmi proprietari? O è execution play?",
-    "stadio_di_sviluppo": "Uno tra: pre-prodotto / MVP / beta privata / prodotto lanciato / ricavi attivi / profittevole"
+    "descrizione": "Functional description of the product. What does a user concretely do with this tool?",
+    "caratteristiche_chiave": ["feature 1", "feature 2", "..."],
+    "stack_tecnologico": "Technologies used if mentioned. If not declared, state 'Not disclosed in deck'.",
+    "differenziatore_tecnologico": "Is there a real technological moat? Patents, proprietary data, proprietary algorithms? Or is this an execution play?",
+    "stadio_di_sviluppo": "One of: pre-product / MVP / private beta / live product / active revenue / profitable"
   }},
 
   "team": {{
     "fondatori": [
       {{
-        "nome": "...",
+        "nome": "EXACT name as written in the deck — never translate or anglicize",
         "ruolo": "...",
-        "background": "Esperienze rilevanti specifiche. Dove ha lavorato, cosa ha costruito, perché è la persona giusta per questo problema."
+        "background": "Specific relevant experience. Where they worked, what they built, why they are the right person for this problem."
       }}
     ],
-    "valutazione_team": "Analisi critica: il team ha domain expertise? Ha già lavorato insieme? Mancano profili chiave (es. CTO, commerciale)? È un team da Serie A?"
+    "valutazione_team": "Critical assessment: does the team have domain expertise? Have they worked together before? Are key profiles missing (e.g. CTO, sales)? Is this a Series A-caliber team?"
   }},
 
   "mercato": {{
-    "settore": "Settore del MERCATO FINALE che la startup serve (es. chi sono i clienti paganti). NON la tecnologia usata internamente. Una startup che usa AI per vendere a produttori di robot è in 'Robotica industriale', non in 'Intelligenza artificiale'.",
-    "sottosettore": "Verticale o nicchia specifica all'interno del settore finale",
-    "dimensione_mercato": "TAM/SAM/SOM se dichiarati con fonte. Se non dichiarati, stima qualitativa motivata.",
-    "tasso_di_crescita": "CAGR o trend se dichiarato o stimabile",
+    "settore": "Sector of the END MARKET the startup serves (i.e. who are the paying customers). NOT the technology used internally. A startup using AI to sell to robot manufacturers is in 'Industrial Robotics', not 'Artificial Intelligence'.",
+    "sottosettore": "Specific vertical or niche within the end market",
+    "dimensione_mercato": "TAM/SAM/SOM if declared with source. If not declared, provide a reasoned qualitative estimate.",
+    "tasso_di_crescita": "CAGR or growth trend if declared or estimable",
     "struttura_della_catena_del_valore": [
       {{
         "fase": "Nome preciso e specifico della fase (es. 'Originazione del credito' non 'Credito')",
@@ -136,33 +139,33 @@ Parti sempre da: cosa manca? cosa non torna? cosa è affermato ma non dimostrato
         "posizione_startup": false
       }}
     ],
-    "posizionamento_nella_catena": "Sulla base della catena del valore che hai costruito sopra in modo indipendente, posiziona con precisione questa azienda: in quale/i fase/i opera, da chi dipende per input (upstream), a chi serve o vende (downstream), se è un enabler B2B o serve il cliente finale, se presidia una sola fase o tenta di integrarsi verticalmente, dove cattura margine oggi vs dove potrebbe catturarne in futuro, e quali player della catena potrebbero disintermediarlo o replicarne la funzione.",
-    "dipendenze_strategiche": "Da quali player/piattaforme/dati dipende? Qual è il rischio se quel player cambia le condizioni?",
-    "driver_di_mercato": "Quali macro-trend o regolatori stanno creando il momento giusto per questa soluzione?"
+    "posizionamento_nella_catena": "Based on the value chain you built independently above, precisely position this company: which layer(s) does it operate in, who does it depend on upstream, who does it serve or sell to downstream, is it a B2B enabler or does it serve the end customer, does it own one layer or attempt vertical integration, where does it capture margin today vs where could it in the future, and which players in the chain could disintermediate it or replicate its function.",
+    "dipendenze_strategiche": "Which players/platforms/data does it depend on? What is the risk if that player changes conditions?",
+    "driver_di_mercato": "Which macro-trends or regulatory changes are creating the right timing for this solution?"
   }},
 
   "competizione": {{
     "player_globali": [
-      {{"nome": "...", "descrizione": "Cosa fanno, quanto sono grandi, come si sovrappongono con questa società, in cosa differiscono"}}
+      {{"nome": "...", "descrizione": "What they do, how large they are, how they overlap with this company, how they differ"}}
     ],
     "player_europei": [
-      {{"nome": "...", "descrizione": "Cosa fanno, quanto sono grandi, come si sovrappongono con questa società, in cosa differiscono"}}
+      {{"nome": "...", "descrizione": "What they do, how large they are, how they overlap with this company, how they differ"}}
     ],
-    "vantaggio_competitivo_dichiarato": "Cosa dice il founder che li differenzia",
-    "valutazione_critica_del_vantaggio": "Il vantaggio è reale e difendibile? È temporaneo o strutturale? Quanto è difficile da replicare per un player con più risorse?"
+    "vantaggio_competitivo_dichiarato": "What the founder claims differentiates them",
+    "valutazione_critica_del_vantaggio": "Is the advantage real and defensible? Is it temporary or structural? How hard is it to replicate for a player with more resources?"
   }},
 
-  "domande_per_il_founder": ["domanda 1", "domanda 2", "domanda 3", "domanda 4", "domanda 5", "domanda 6", "domanda 7"],
+  "domande_per_il_founder": ["question 1", "question 2", "question 3", "question 4", "question 5", "question 6", "question 7"],
 
   "punti_di_attenzione": [
     {{
-      "area": "es. Competizione / Team / Tecnologia / Mercato / Financials / Regolatorio / ecc.",
-      "gravità": "Alta / Media / Bassa",
-      "descrizione": "Descrizione precisa del rischio o della lacuna. Perché è un problema. Cosa dovrebbe chiarire o dimostrare il founder per mitigarlo."
+      "area": "e.g. Competition / Team / Technology / Market / Financials / Regulatory / etc.",
+      "gravità": "High / Medium / Low",
+      "descrizione": "Precise description of the risk or gap. Why it is a problem. What the founder should clarify or demonstrate to mitigate it."
     }}
   ],
 
-  "sintesi": "3-4 frasi che un partner VC direbbe al suo team dopo aver letto il deck: perché potrebbe essere interessante, quali sono i 2 rischi principali, e qual è la domanda a cui bisogna rispondere prima di procedere."
+  "sintesi": "3-4 sentences a VC partner would say to their team after reading the deck: why it could be interesting, what the 2 main risks are, and what question needs to be answered before proceeding."
 }}"""
 
 # ---------------------------------------------------------------------------
@@ -172,7 +175,7 @@ Parti sempre da: cosa manca? cosa non torna? cosa è affermato ma non dimostrato
 # ---------------------------------------------------------------------------
 
 HTML_TEMPLATE = """<!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -245,9 +248,9 @@ const Pill = ({children, teal}) => (
 
 function NavBar() {
   const sections = [
-    ['business','Business'],['prodotto','Prodotto'],['team','Team'],
-    ['mercato','Mercato'],['competizione','Competizione'],
-    ['domande','Domande'],['rischi','Rischi'],
+    ['business','Business'],['prodotto','Product'],['team','Team'],
+    ['mercato','Market'],['competizione','Competition'],
+    ['domande','Questions'],['rischi','Red Flags'],
   ];
   const [hov, setHov] = useState(null);
   return (
@@ -271,18 +274,18 @@ function NavBar() {
 function Header() {
   const nome = D.nome_azienda||'';
   const tag  = D.tagline||'';
-  const date = new Date().toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});
+  const date = new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
   return (
     <div style={{padding:'40px 0 28px',borderBottom:`1px solid ${C.border}`,marginBottom:28}}>
       <div style={{fontSize:11,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',
-        color:C.t3,marginBottom:10}}>Analisi Pitch Deck</div>
+        color:C.t3,marginBottom:10}}>Pitch Deck Analysis</div>
       <h1 style={{fontSize:38,fontWeight:700,letterSpacing:'-.8px',color:C.t1,
         lineHeight:1.15,marginBottom:8}}>{nome}</h1>
       {tag && <div style={{fontSize:16,color:C.t2,marginBottom:12,fontStyle:'italic'}}>"{tag}"</div>}
       <div style={{display:'flex',flexWrap:'wrap',gap:6,alignItems:'center',marginTop:8}}>
         <Pill>{date}</Pill>
         <Pill>GPT-4o</Pill>
-        {web && <Pill teal>+ ricerca web</Pill>}
+        {web && <Pill teal>+ web research</Pill>}
       </div>
     </div>
   );
@@ -303,9 +306,9 @@ function BusinessSection() {
   return (
     <Card id="business">
       <CardTitle>Business</CardTitle>
-      <Field label="Problema">{b.problema}</Field>
-      <Field label="Soluzione">{b.soluzione}</Field>
-      <Field label="Modello di business" mt={0}>{b.modello_di_business}</Field>
+      <Field label="Problem">{b.problema}</Field>
+      <Field label="Solution">{b.soluzione}</Field>
+      <Field label="Business Model" mt={0}>{b.modello_di_business}</Field>
     </Card>
   );
 }
@@ -315,18 +318,18 @@ function ProductSection() {
   const feats = p.caratteristiche_chiave||[];
   return (
     <Card id="prodotto">
-      <CardTitle>Prodotto e Tecnologia</CardTitle>
-      <Field label="Descrizione">{p.descrizione}</Field>
-      <Field label="Caratteristiche chiave">
+      <CardTitle>Product & Technology</CardTitle>
+      <Field label="Description">{p.descrizione}</Field>
+      <Field label="Key Features">
         <div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:4}}>
           {feats.map((f,i)=><Tag key={i} v="green">{f}</Tag>)}
         </div>
       </Field>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20}}>
-        <Field label="Stack tecnologico">{p.stack_tecnologico}</Field>
-        <Field label="Stadio"><Tag v="orange">{p.stadio_di_sviluppo}</Tag></Field>
+        <Field label="Tech Stack">{p.stack_tecnologico}</Field>
+        <Field label="Stage"><Tag v="orange">{p.stadio_di_sviluppo}</Tag></Field>
       </div>
-      <Field label="Differenziatore tecnologico" mt={4}>{p.differenziatore_tecnologico}</Field>
+      <Field label="Tech Differentiator" mt={4}>{p.differenziatore_tecnologico}</Field>
     </Card>
   );
 }
@@ -345,7 +348,7 @@ function TeamSection() {
           <div style={{fontSize:13,color:C.t2,lineHeight:1.6}}>{f.background}</div>
         </div>
       ))}
-      <Field label="Valutazione critica" mt={16}>{t.valutazione_team}</Field>
+      <Field label="Critical Assessment" mt={16}>{t.valutazione_team}</Field>
     </Card>
   );
 }
@@ -369,7 +372,7 @@ function ValueChain({ fasi }) {
                   position:'absolute',top:-18,left:'50%',transform:'translateX(-50%)',
                   background:C.blue,color:'white',borderRadius:99,
                   padding:'2px 10px',fontSize:9,fontWeight:700,whiteSpace:'nowrap'
-                }}>★ qui</div>
+                }}>★ here</div>
               )}
               <div style={{
                 fontWeight:700,fontSize:13,marginBottom:6,
@@ -411,27 +414,27 @@ function MarketSection() {
     ? m.struttura_della_catena_del_valore : [];
   return (
     <Card id="mercato">
-      <CardTitle>Mercato</CardTitle>
+      <CardTitle>Market</CardTitle>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24}}>
         <div>
-          <Field label="Settore">
+          <Field label="Sector">
             <Tag v="blue">{m.settore}</Tag>
             <Tag v="gray">{m.sottosettore}</Tag>
           </Field>
-          <Field label="Dimensione mercato">{m.dimensione_mercato}</Field>
-          <Field label="Tasso di crescita">{m.tasso_di_crescita}</Field>
-          <Field label="Driver di mercato">{m.driver_di_mercato}</Field>
+          <Field label="Market Size">{m.dimensione_mercato}</Field>
+          <Field label="Growth Rate">{m.tasso_di_crescita}</Field>
+          <Field label="Market Drivers">{m.driver_di_mercato}</Field>
         </div>
         <div>
-          <Field label="Posizionamento nella catena">{m.posizionamento_nella_catena}</Field>
-          <Field label="Dipendenze strategiche">{m.dipendenze_strategiche}</Field>
+          <Field label="Value Chain Position">{m.posizionamento_nella_catena}</Field>
+          <Field label="Strategic Dependencies">{m.dipendenze_strategiche}</Field>
         </div>
       </div>
       {fasi.length > 0 && (
         <div style={{marginTop:20,borderTop:`1px solid ${C.border}`,paddingTop:20}}>
           <div style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',
             textTransform:'uppercase',color:C.t3,marginBottom:2}}>
-            Value Chain del Settore
+            Industry Value Chain
           </div>
           <ValueChain fasi={fasi} />
         </div>
@@ -448,9 +451,9 @@ function CompetitionSection() {
   ];
   return (
     <Card id="competizione">
-      <CardTitle>Arena Competitiva</CardTitle>
-      <Field label="Vantaggio dichiarato">{c.vantaggio_competitivo_dichiarato}</Field>
-      <Field label="Valutazione critica">{c.valutazione_critica_del_vantaggio}</Field>
+      <CardTitle>Competitive Arena</CardTitle>
+      <Field label="Claimed Advantage">{c.vantaggio_competitivo_dichiarato}</Field>
+      <Field label="Critical Assessment">{c.valutazione_critica_del_vantaggio}</Field>
       {all.length>0 && (
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginTop:8}}>
           {all.map((p,i)=>(
@@ -471,7 +474,7 @@ function QuestionsSection() {
   const qs = D.domande_per_il_founder||[];
   return (
     <Card id="domande">
-      <CardTitle>Domande per il Founder</CardTitle>
+      <CardTitle>Questions for the Founder</CardTitle>
       <ol style={{listStyle:'none'}}>
         {qs.map((q,i)=>(
           <li key={i} style={{display:'flex',gap:14,padding:'13px 0',
@@ -491,9 +494,9 @@ function FlagsSection() {
   const flags = D.punti_di_attenzione||[];
   return (
     <Card id="rischi">
-      <CardTitle>Punti di Attenzione</CardTitle>
+      <CardTitle>Red Flags</CardTitle>
       {flags.length===0
-        ? <p style={{color:C.t3,fontSize:14}}>Nessun punto critico identificato.</p>
+        ? <p style={{color:C.t3,fontSize:14}}>No critical issues identified.</p>
         : flags.map((f,i)=>{
           const g = f.gravità||f.gravita||'Media';
           const alta = g.toLowerCase()==='alta';
