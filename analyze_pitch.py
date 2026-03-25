@@ -723,7 +723,7 @@ def phase2_analyze(client: OpenAI, nome: str, pdf_text: str, web_ctx: str) -> di
         ],
         temperature=0.2,
         response_format={"type": "json_object"},
-        max_tokens=4000,
+        max_tokens=8000,
     )
     return json.loads(resp.choices[0].message.content)
 
