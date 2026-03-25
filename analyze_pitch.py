@@ -72,7 +72,18 @@ Produci un'analisi approfondita in JSON con la struttura esatta qui sotto.
 Non aggiungere testo fuori dal JSON. Tutto in italiano.
 
 REGOLE PER struttura_della_catena_del_valore:
-Ignora completamente il deck. Costruisci la catena del valore del MERCATO FINALE che la startup serve (stesso settore del campo "settore" — non la tecnologia usata). Array di 4-6 oggetti, uno per fase. Ogni fase deve essere analitica e specifica: descrizione densa con dinamiche reali del settore, player nominati con ruolo/dimensione, ragionamento sul margine con cause strutturali. Vietato il generico: "gli operatori catturano margine grazie alla loro posizione" non è un'analisi. Scrivi come se stessi briefando un partner prima di una board meeting. posizione_startup:true solo per le fasi presidiate dalla startup.
+Ignora completamente il deck. Costruisci la struttura dell'ecosistema del MERCATO FINALE che la startup serve.
+
+FRAMEWORK: per mercati digitali/software/piattaforma NON usare supply chain lineare (fornitore→produttore→distributore→cliente). Ragiona per STACK FUNZIONALE: quali sono i layer dell'ecosistema? Chi controlla ogni layer? Cosa fluisce tra i layer (dati, API access, distribuzione, denaro, attenzione)?
+
+Per ogni layer/fase produci:
+- "fase": nome tecnico preciso (es. "Data & Access Layer" non "Dati")
+- "descrizione": 3-4 frasi dense su cosa controlla questo layer, perché è strutturalmente rilevante, come si è evoluto negli ultimi 3 anni, quali tensioni lo caratterizzano oggi (commoditizzazione, consolidamento, disruption in corso)
+- "player": 4-6 player nominati con annotazione breve sul loro ruolo specifico in questo layer
+- "margine": 2-3 frasi su chi cattura margine, con quale leva specifica (dati proprietari non replicabili, network effect, accesso esclusivo, lock-in switching cost, scala), se il margine si sta erodendo o consolidando e perché
+- "posizione_startup": true solo se la startup opera in questo layer
+
+Vietato il generico. "Gli operatori catturano margine grazie alla loro posizione" non è un'analisi — spiega la leva strutturale specifica. Scrivi come un analista McKinsey che briefa un Partner VC prima di un primo meeting.
 
 REGOLE PER domande_per_il_founder:
 Genera 7 domande partendo da ciò che questo specifico deck NON dice, dice in modo vago, o contraddice.
@@ -609,6 +620,14 @@ def vision_full_analysis(pdf_path: Path, client: OpenAI) -> dict:
     return json.loads(resp.choices[0].message.content)
 
 
+def clean_text(text: str) -> str:
+    """Rimuove artefatti di encoding PDF come (cid:20)."""
+    import re
+    text = re.sub(r'\(cid:\d+\)', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+
 def extract_text_from_pdf(pdf_path: Path) -> tuple[str, int]:
     """Estrae testo dal PDF. Restituisce (testo, numero_pagine)."""
     pages = []
@@ -618,7 +637,7 @@ def extract_text_from_pdf(pdf_path: Path) -> tuple[str, int]:
         for i, page in enumerate(pdf.pages):
             text = page.extract_text()
             if text and text.strip():
-                pages.append(f"[Slide {i+1}]\n{text.strip()}")
+                pages.append(f"[Slide {i+1}]\n{clean_text(text)}")
     return "\n\n".join(pages), page_count
 
 
